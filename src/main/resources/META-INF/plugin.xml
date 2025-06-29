@@ -12,5 +12,6 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="com.github.akshayashokcode.devfocus.toolWindow.DevFocusToolWindowFactory" id="DevFocus"/>
         <postStartupActivity implementation="com.github.akshayashokcode.devfocus.startup.MyProjectActivity" />
+        <projectService serviceImplementation="com.github.akshayashokcode.devfocus.services.pomodoro.PomodoroTimerService"/>
     </extensions>
 </idea-plugin>
