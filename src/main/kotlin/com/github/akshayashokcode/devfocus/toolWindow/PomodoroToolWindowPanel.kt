@@ -1,58 +1,85 @@
 package com.github.akshayashokcode.devfocus.toolWindow
 
+import com.github.akshayashokcode.devfocus.model.PomodoroSettings
 import com.github.akshayashokcode.devfocus.services.pomodoro.PomodoroTimerService
+import com.github.akshayashokcode.devfocus.ui.settings.PomodoroSettingsPanel
 import com.intellij.openapi.project.Project
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
 import java.awt.BorderLayout
-import javax.swing.JButton
-import javax.swing.JPanel
-import javax.swing.SwingUtilities
+import java.awt.FlowLayout
+import javax.swing.*
 
 class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLayout()) {
 
     private val timerService = project.getService(PomodoroTimerService::class.java) ?: error("PomodoroTimerService not available")
 
-    private val timerLabel = JBLabel("25:00")
+    private val timeLabel = JLabel("25:00").apply {
+        horizontalAlignment = SwingConstants.CENTER
+        font = font.deriveFont(32f)
+    }
+
     private val startButton = JButton("Start")
     private val pauseButton = JButton("Pause")
     private val resetButton = JButton("Reset")
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-
-    init {
-        setupUI()
-        observeTimer()
+    private val settingsPanel = PomodoroSettingsPanel { session, breakTime, sessions ->
+        timerService.applySettings(PomodoroSettings(session, breakTime, sessions))
     }
 
-    private fun setupUI() {
-        val controls = JPanel().apply {
+    private val scope = CoroutineScope(Dispatchers.Default)
+    private var stateJob: Job? = null
+    private var timeJob: Job? = null
+
+    init {
+        val buttonPanel = JPanel(FlowLayout()).apply {
             add(startButton)
             add(pauseButton)
             add(resetButton)
         }
 
-        add(timerLabel, BorderLayout.CENTER)
-        add(controls, BorderLayout.SOUTH)
+        val centerPanel = JPanel(BorderLayout()).apply {
+            add(timeLabel, BorderLayout.CENTER)
+            add(buttonPanel, BorderLayout.SOUTH)
+        }
 
+        add(centerPanel, BorderLayout.CENTER)
+        add(settingsPanel, BorderLayout.SOUTH)
+
+        setupListeners()
+        observeTimer()
+    }
+
+    private fun setupListeners() {
         startButton.addActionListener { timerService.start() }
         pauseButton.addActionListener { timerService.pause() }
         resetButton.addActionListener { timerService.reset() }
     }
 
     private fun observeTimer() {
-        CoroutineScope(Dispatchers.Default).launch {
-            timerService.timeLeft.collect {
+        timeJob = scope.launch {
+            timerService.timeLeft.collectLatest {
                 SwingUtilities.invokeLater {
-                    timerLabel.text = it
+                    timeLabel.text = it
+                }
+            }
+        }
+
+        stateJob = scope.launch {
+            timerService.state.collectLatest {
+                SwingUtilities.invokeLater {
+                    startButton.isEnabled = it != PomodoroTimerService.TimerState.RUNNING
+                    pauseButton.isEnabled = it == PomodoroTimerService.TimerState.RUNNING
+                    resetButton.isEnabled = it != PomodoroTimerService.TimerState.IDLE
                 }
             }
         }
     }
 
-    override fun removeNotify() {
-        super.removeNotify()
-        coroutineScope.cancel() // cleanup coroutine when panel is disposed
+    fun dispose() {
+        stateJob?.cancel()
+        timeJob?.cancel()
+        scope.cancel()
     }
 }

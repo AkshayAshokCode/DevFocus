@@ -1,5 +1,6 @@
 package com.github.akshayashokcode.devfocus.services.pomodoro
 
+import com.github.akshayashokcode.devfocus.model.PomodoroSettings
 import com.intellij.openapi.components.Service
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,8 @@ class PomodoroTimerService {
 
     private val _state = MutableStateFlow(TimerState.IDLE)
     val state: StateFlow<TimerState> = _state
+
+    private var settings = PomodoroSettings(25, 5, 4) // default
 
     fun start() {
         if (_state.value == TimerState.RUNNING) return
@@ -67,5 +70,12 @@ class PomodoroTimerService {
         val minutes = totalSeconds / 60
         val seconds = totalSeconds % 60
         return String.format("%02d:%02d", minutes, seconds)
+    }
+
+    fun applySettings(settings: PomodoroSettings) {
+        this.settings = settings
+        remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
+        _timeLeft.value = formatTime(remainingTimeMs)
+        _state.value = TimerState.IDLE
     }
 }
