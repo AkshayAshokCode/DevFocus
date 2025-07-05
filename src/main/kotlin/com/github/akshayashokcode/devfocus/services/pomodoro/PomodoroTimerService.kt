@@ -1,5 +1,6 @@
 package com.github.akshayashokcode.devfocus.services.pomodoro
 
+import com.intellij.openapi.components.Service
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -11,6 +12,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
+@Service(Service.Level.PROJECT)
 class PomodoroTimerService {
     companion object {
         private const val DEFAULT_MINUTES = 25
