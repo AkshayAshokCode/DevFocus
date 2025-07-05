@@ -21,14 +21,7 @@ Use it to set focused 25-minute sessions, get break reminders, and track your pr
 - 💡 Simple, unobtrusive design
 - 🧠 Works in Android Studio and IntelliJ IDEA
 
-## Getting Started
-
-1. Clone this repository
-2. Open it in IntelliJ IDEA (with IntelliJ Plugin Dev Support)
-3. Run the plugin using the Gradle task `runIde`
-4. Look for the **DevFocus** tool window in your IDE
-
-## Installation
+## Installation (NOT PUBLISHED YET)
 
 - Using the IDE built-in plugin system:
   
