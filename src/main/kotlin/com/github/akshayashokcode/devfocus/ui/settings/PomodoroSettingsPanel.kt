@@ -2,8 +2,10 @@ package com.github.akshayashokcode.devfocus.ui.settings
 
 import com.github.akshayashokcode.devfocus.util.SettingsValidationResult
 import com.github.akshayashokcode.devfocus.util.validateSettings
+import java.awt.Color
 import java.awt.GridLayout
 import javax.swing.*
+import javax.swing.border.LineBorder
 
 class PomodoroSettingsPanel(
     private val applySettingsCallback: (Int, Int, Int) -> Unit
@@ -24,7 +26,17 @@ class PomodoroSettingsPanel(
         add(JLabel()) // spacer
         add(applyButton)
 
+        clearOnType(sessionField)
+        clearOnType(breakField)
+        clearOnType(sessionsField)
+
         applyButton.addActionListener {
+            // Reset all fields to default border
+            val defaultBorder = UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border")
+            sessionField.border = defaultBorder
+            breakField.border = defaultBorder
+            sessionsField.border = defaultBorder
+
             val session = sessionField.text.toIntOrNull()
             val breakTime = breakField.text.toIntOrNull()
             val sessions = sessionsField.text.toIntOrNull()
@@ -38,10 +50,37 @@ class PomodoroSettingsPanel(
                     )
                     JOptionPane.showMessageDialog(this, "Settings applied successfully.")
                 }
+
                 is SettingsValidationResult.Invalid -> {
-                    JOptionPane.showMessageDialog(this, result.errorMessage, "Validation Error", JOptionPane.ERROR_MESSAGE)
+                    val errorBorder = LineBorder(Color.RED, 2)
+
+                    // Highlight the appropriate field
+                    when (result.field) {
+                        "session" -> sessionField.border = errorBorder
+                        "break" -> breakField.border = errorBorder
+                        "sessions" -> sessionsField.border = errorBorder
+                    }
+
+                    // Show popup error as well
+                    JOptionPane.showMessageDialog(
+                        this,
+                        result.errorMessage,
+                        "Validation Error",
+                        JOptionPane.ERROR_MESSAGE
+                    )
                 }
             }
         }
+    }
+    private fun clearOnType(field: JTextField) {
+        val defaultBorder = UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border")
+        field.document.addDocumentListener(object : javax.swing.event.DocumentListener {
+            override fun insertUpdate(e: javax.swing.event.DocumentEvent?) = clear()
+            override fun removeUpdate(e: javax.swing.event.DocumentEvent?) = clear()
+            override fun changedUpdate(e: javax.swing.event.DocumentEvent?) = clear()
+            private fun clear() {
+                field.border = defaultBorder
+            }
+        })
     }
 }
