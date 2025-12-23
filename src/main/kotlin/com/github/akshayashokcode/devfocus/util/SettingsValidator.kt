@@ -1,5 +1,6 @@
 package com.github.akshayashokcode.devfocus.util
 
+import com.github.akshayashokcode.devfocus.model.PomodoroMode
 import com.github.akshayashokcode.devfocus.model.PomodoroSettings
 
 sealed class SettingsValidationResult {
@@ -13,7 +14,7 @@ fun validateSettings(
     sessions: Int?
 ): SettingsValidationResult {
     if (session == null) return SettingsValidationResult.Invalid("session", "Session duration must be a number.")
-    if (session !in 5..120) return SettingsValidationResult.Invalid("session", "Session duration must be between 5 and 120 minutes.")
+    if (session !in 1..120) return SettingsValidationResult.Invalid("session", "Session duration must be between 1 and 120 minutes.")
 
     if (breakTime == null) return SettingsValidationResult.Invalid("break", "Break duration must be a number.")
     if (breakTime !in 1..60) return SettingsValidationResult.Invalid("break", "Break duration must be between 1 and 60 minutes.")
@@ -21,5 +22,5 @@ fun validateSettings(
     if (sessions == null) return SettingsValidationResult.Invalid("sessions", "Sessions per round must be a number.")
     if (sessions !in 1..10) return SettingsValidationResult.Invalid("sessions", "Sessions per round must be between 1 and 10.")
 
-    return SettingsValidationResult.Valid(PomodoroSettings(session, breakTime, sessions))
+    return SettingsValidationResult.Valid(PomodoroSettings(PomodoroMode.CUSTOM, session, breakTime, sessions))
 }
