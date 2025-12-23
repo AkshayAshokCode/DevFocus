@@ -5,28 +5,36 @@ enum class PomodoroMode(
     val emoji: String,
     val sessionMinutes: Int,
     val breakMinutes: Int,
-    val sessionsPerRound: Int
+    val sessionsPerRound: Int,
+    val longBreakMinutes: Int,
+    val longBreakAfter: Int
 ) {
     CLASSIC(
         displayName = "Classic Pomodoro",
         emoji = "🍅",
         sessionMinutes = 25,
         breakMinutes = 5,
-        sessionsPerRound = 4
+        sessionsPerRound = 4,
+        longBreakMinutes = 15,
+        longBreakAfter = 4
     ),
     DEEP_WORK(
         displayName = "Deep Work",
         emoji = "⚡",
-        sessionMinutes = 52,
-        breakMinutes = 17,
-        sessionsPerRound = 3
+        sessionMinutes = 50,
+        breakMinutes = 10,
+        sessionsPerRound = 2,
+        longBreakMinutes = 30,
+        longBreakAfter = 2
     ),
     CUSTOM(
         displayName = "Custom",
         emoji = "⚙️",
         sessionMinutes = 25,
         breakMinutes = 5,
-        sessionsPerRound = 4
+        sessionsPerRound = 4,
+        longBreakMinutes = 15,
+        longBreakAfter = 4
     );
 
     fun toSettings(): PomodoroSettings {
@@ -34,7 +42,9 @@ enum class PomodoroMode(
             mode = this,
             sessionMinutes = sessionMinutes,
             breakMinutes = breakMinutes,
-            sessionsPerRound = sessionsPerRound
+            sessionsPerRound = sessionsPerRound,
+            longBreakMinutes = longBreakMinutes,
+            longBreakAfter = longBreakAfter
         )
     }
 

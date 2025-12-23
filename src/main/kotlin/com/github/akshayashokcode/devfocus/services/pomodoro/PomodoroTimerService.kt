@@ -1,5 +1,6 @@
 package com.github.akshayashokcode.devfocus.services.pomodoro
 
+import com.github.akshayashokcode.devfocus.model.PomodoroMode
 import com.github.akshayashokcode.devfocus.model.PomodoroSettings
 import com.intellij.openapi.components.Service
 import kotlinx.coroutines.CoroutineScope
@@ -16,16 +17,16 @@ import java.util.concurrent.TimeUnit
 @Service(Service.Level.PROJECT)
 class PomodoroTimerService {
     companion object {
-        private const val DEFAULT_MINUTES = 25
         private const val ONE_SECOND = 1000L
     }
 
     enum class TimerState { IDLE, RUNNING, PAUSED }
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-
-    private var remainingTimeMs: Long = TimeUnit.MINUTES.toMillis(DEFAULT_MINUTES.toLong())
     private var job: Job? = null
+
+    private var settings = PomodoroMode.CLASSIC.toSettings()
+    private var remainingTimeMs: Long = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
 
     private val _timeLeft = MutableStateFlow(formatTime(remainingTimeMs))
     val timeLeft: StateFlow<String> = _timeLeft
@@ -33,10 +34,17 @@ class PomodoroTimerService {
     private val _state = MutableStateFlow(TimerState.IDLE)
     val state: StateFlow<TimerState> = _state
 
-    private var settings = PomodoroSettings(25, 5, 4) // default
+    private val _currentSession = MutableStateFlow(1)
+    val currentSession: StateFlow<Int> = _currentSession
+
+    private val _settings = MutableStateFlow(settings)
+    val settingsFlow: StateFlow<PomodoroSettings> = _settings
 
     fun start() {
         if (_state.value == TimerState.RUNNING) return
+
+        // Cancel any existing job to ensure only one timer is running
+        job?.cancel()
 
         _state.value = TimerState.RUNNING
         job = coroutineScope.launch {
@@ -59,9 +67,14 @@ class PomodoroTimerService {
     }
 
     fun reset() {
+        // Cancel any running job
         job?.cancel()
-        remainingTimeMs = TimeUnit.MINUTES.toMillis(DEFAULT_MINUTES.toLong())
+        job = null
+
+        // Reset to initial state
+        remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
         _timeLeft.value = formatTime(remainingTimeMs)
+        _currentSession.value = 1
         _state.value = TimerState.IDLE
     }
 
@@ -72,10 +85,27 @@ class PomodoroTimerService {
         return String.format("%02d:%02d", minutes, seconds)
     }
 
-    fun applySettings(settings: PomodoroSettings) {
-        this.settings = settings
-        remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
+    fun applySettings(newSettings: PomodoroSettings) {
+        // Cancel any running job when settings change
+        job?.cancel()
+        job = null
+
+        settings = newSettings
+        _settings.value = newSettings
+        remainingTimeMs = TimeUnit.MINUTES.toMillis(newSettings.sessionMinutes.toLong())
         _timeLeft.value = formatTime(remainingTimeMs)
+        _currentSession.value = 1
         _state.value = TimerState.IDLE
+    }
+
+    fun applyMode(mode: PomodoroMode) {
+        applySettings(mode.toSettings())
+    }
+
+    fun getSettings(): PomodoroSettings = settings
+
+    fun getProgress(): Float {
+        val totalMs = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
+        return if (totalMs > 0) remainingTimeMs.toFloat() / totalMs.toFloat() else 0f
     }
 }
