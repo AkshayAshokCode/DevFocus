@@ -2,10 +2,27 @@
 <idea-plugin>
     <id>com.github.akshayashokcode.devfocus</id>
     <name>DevFocus</name>
-    <vendor>akshayashokcode</vendor>
+    <vendor email="akshayashokan1054@gmail.com"
+            url="https://github.com/akshayashokcode"
+    >akshayashokcode</vendor>
+    <description>
+        <![CDATA[
+        DevFocus is a Pomodoro timer for Android Studio & IntelliJ
+        that helps developers maintain deep focus using structured
+        work sessions, breaks, and productivity tracking.
+        ]]>
+    </description>
 
-    <depends>org.jetbrains.android</depends>
+    <change-notes>
+        Initial release of DevFocus Pomodoro timer.
+    </change-notes>
+
+    <idea-version since-build="233" until-build="251.*"/>
+
     <depends>com.intellij.modules.platform</depends>
+
+    <!-- Optional Android support -->
+    <depends optional="true">org.jetbrains.android</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
