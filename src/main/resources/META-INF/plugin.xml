@@ -10,7 +10,10 @@
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.akshayashokcode.devfocus.toolWindow.DevFocusToolWindowFactory" id="DevFocus"/>
+        <toolWindow factoryClass="com.github.akshayashokcode.devfocus.toolWindow.DevFocusToolWindowFactory"
+                    id="DevFocus"
+                    icon = "/icons/startTimer.svg"
+        />
         <postStartupActivity implementation="com.github.akshayashokcode.devfocus.startup.MyProjectActivity" />
         <projectService serviceImplementation="com.github.akshayashokcode.devfocus.services.pomodoro.PomodoroTimerService"/>
     </extensions>
