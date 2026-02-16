@@ -2,6 +2,7 @@ package com.github.akshayashokcode.devfocus.ui.components
 
 import java.awt.*
 import javax.swing.JPanel
+import javax.swing.UIManager
 
 class CircularTimerPanel : JPanel() {
 
@@ -13,7 +14,6 @@ class CircularTimerPanel : JPanel() {
     private val workColor = Color(74, 144, 226) // Blue for focus/work
     private val breakColor = Color(80, 200, 120) // Green for rest
     private val backgroundColor = Color(224, 224, 224) // Light gray
-    private val textColor = Color(60, 60, 60) // Dark gray for text
 
     private val diameter = 180
     private val strokeWidth = 10f
@@ -34,7 +34,7 @@ class CircularTimerPanel : JPanel() {
         super.paintComponent(g)
         val g2d = g as Graphics2D
 
-        // Enable anti-aliasing for smooth circles
+        // Enable antialiasing for smooth circles
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
@@ -60,7 +60,7 @@ class CircularTimerPanel : JPanel() {
         g2d.drawArc(arcX, arcY, arcSize, arcSize, 90, -arcAngle) // Negative for clockwise
 
         // Draw time text in center
-        g2d.color = textColor
+        g2d.color = UIManager.getColor("Label.foreground") ?: Color.BLACK
         val font = Font("SansSerif", Font.BOLD, 36)
         g2d.font = font
 

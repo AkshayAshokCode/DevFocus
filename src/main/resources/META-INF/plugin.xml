@@ -33,5 +33,6 @@
         />
         <postStartupActivity implementation="com.github.akshayashokcode.devfocus.startup.MyProjectActivity" />
         <projectService serviceImplementation="com.github.akshayashokcode.devfocus.services.pomodoro.PomodoroTimerService"/>
+        <notificationGroup id="DevFocus Notifications" displayType="BALLOON"/>
     </extensions>
 </idea-plugin>
