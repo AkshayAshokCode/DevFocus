@@ -51,8 +51,6 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     // Control buttons
     private val startButton = JButton("Start").apply {
         preferredSize = Dimension(80, 32)
-        // Make it a prominent primary button
-        putClientProperty("JButton.buttonType", "default")
         font = font.deriveFont(Font.BOLD)
     }
     private val pauseButton = JButton("Pause").apply {
@@ -236,6 +234,33 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
                     startButton.isEnabled = it != PomodoroTimerService.TimerState.RUNNING
                     pauseButton.isEnabled = it == PomodoroTimerService.TimerState.RUNNING
                     resetButton.isEnabled = it != PomodoroTimerService.TimerState.IDLE
+
+                    // Update start button text based on state
+                    startButton.text = when (it) {
+                        PomodoroTimerService.TimerState.IDLE -> "Start"
+                        else -> "Resume"
+                    }
+
+                    // Clear all default values
+                    startButton.putClientProperty("JButton.buttonType", null)
+                    pauseButton.putClientProperty("JButton.buttonType", null)
+                    resetButton.putClientProperty("JButton.buttonType", null)
+
+                    // Update default button (blue highlight) based on state
+                    when (it) {
+                        PomodoroTimerService.TimerState.IDLE -> {
+                            startButton.putClientProperty("JButton.buttonType", "default")
+                            startButton.requestFocusInWindow()
+                        }
+                        PomodoroTimerService.TimerState.RUNNING -> {
+                            pauseButton.putClientProperty("JButton.buttonType", "default")
+                            pauseButton.requestFocusInWindow()
+                        }
+                        PomodoroTimerService.TimerState.PAUSED -> {
+                            startButton.putClientProperty("JButton.buttonType", "default")
+                            startButton.requestFocusInWindow()
+                        }
+                    }
 
                     // Check if we're truly idle (session and work phase) or just transitioning
                     val currentSession = timerService.currentSession.value
