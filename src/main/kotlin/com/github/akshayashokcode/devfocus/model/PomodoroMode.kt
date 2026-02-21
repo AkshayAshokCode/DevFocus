@@ -11,7 +11,7 @@ enum class PomodoroMode(
 ) {
     CLASSIC(
         displayName = "Classic Pomodoro",
-        emoji = "🍅",
+        emoji = "\uD83C\uDFAF",
         sessionMinutes = 25,
         breakMinutes = 5,
         sessionsPerRound = 4,

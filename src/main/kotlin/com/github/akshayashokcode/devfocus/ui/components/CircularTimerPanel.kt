@@ -12,11 +12,11 @@ class CircularTimerPanel : JPanel() {
 
     // Colors following UX best practices
     private val workColor = Color(74, 144, 226) // Blue for focus/work
-    private val breakColor = Color(80, 200, 120) // Green for rest
+    private val breakColor = Color(243, 156, 18) // Orange for rest
     private val backgroundColor = Color(224, 224, 224) // Light gray
 
     private val diameter = 180
-    private val strokeWidth = 10f
+    private val strokeWidth = 12f
 
     init {
         preferredSize = Dimension(diameter + 40, diameter + 40)
