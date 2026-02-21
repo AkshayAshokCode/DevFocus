@@ -99,7 +99,7 @@ class PomodoroTimerService(private val project: Project) {
                 NotificationGroupManager.getInstance()
                     .getNotificationGroup(NOTIFICATION_GROUP_ID)
                     .createNotification(
-                        "\uD83C\uDF45 Session $currentSessionNum Complete!",
+                        "✅ Session $currentSessionNum Complete!",
                         "Great work! Starting ${settings.breakMinutes}-minute break ☕.",
                         NotificationType.INFORMATION
                     )
@@ -120,7 +120,7 @@ class PomodoroTimerService(private val project: Project) {
                 .getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(
                     "☕ Break Complete!",
-                    "Starting session ${currentSessionNum + 1} of $totalSessions.",
+                    "Starting session $currentSessionNum of $totalSessions.",
                     NotificationType.INFORMATION
                 )
                 .notify(project)

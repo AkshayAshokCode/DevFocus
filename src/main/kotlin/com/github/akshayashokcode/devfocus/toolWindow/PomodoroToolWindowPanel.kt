@@ -6,6 +6,7 @@ import com.github.akshayashokcode.devfocus.services.pomodoro.PomodoroTimerServic
 import com.github.akshayashokcode.devfocus.ui.components.CircularTimerPanel
 import com.github.akshayashokcode.devfocus.ui.components.SessionIndicatorPanel
 import com.github.akshayashokcode.devfocus.ui.settings.PomodoroSettingsPanel
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBPanel
 import kotlinx.coroutines.*
@@ -18,7 +19,7 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.*
 
-class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLayout()) {
+class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLayout()), Disposable {
 
     private val timerService = project.getService(PomodoroTimerService::class.java) ?: error("PomodoroTimerService not available")
 
@@ -235,15 +236,22 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
                     startButton.isEnabled = it != PomodoroTimerService.TimerState.RUNNING
                     pauseButton.isEnabled = it == PomodoroTimerService.TimerState.RUNNING
                     resetButton.isEnabled = it != PomodoroTimerService.TimerState.IDLE
-                    // Disable mode selector when timer is active (running or paused)
-                    modeComboBox.isEnabled = it == PomodoroTimerService.TimerState.IDLE
+
+                    // Check if we're truly idle (session and work phase) or just transitioning
+                    val currentSession = timerService.currentSession.value
+                    val currentPhase = timerService.currentPhase.value
+                    val isTrulyIdle = it == PomodoroTimerService.TimerState.IDLE &&
+                            currentSession == 1 &&
+                            currentPhase == PomodoroTimerService.TimerPhase.WORK
+
+                    modeComboBox.isEnabled = isTrulyIdle
 
                     // Hide custom settings panel when timer is active
-                    if (it != PomodoroTimerService.TimerState.IDLE && modeComboBox.selectedItem == PomodoroMode.CUSTOM) {
+                    if (!isTrulyIdle && modeComboBox.selectedItem == PomodoroMode.CUSTOM) {
                         settingsPanel.isVisible = false
                         revalidate()
                         repaint()
-                    } else {
+                    } else if (isTrulyIdle){
                         updateSettingsPanelVisibility()
                     }
                 }
@@ -273,7 +281,7 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
         }
     }
 
-    fun dispose() {
+    override fun dispose() {
         stateJob?.cancel()
         timeJob?.cancel()
         sessionJob?.cancel()
