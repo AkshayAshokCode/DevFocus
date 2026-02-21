@@ -10,12 +10,19 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBPanel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.FlowLayout
+import java.awt.Font
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import javax.swing.*
 
 class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLayout()) {
 
     private val timerService = project.getService(PomodoroTimerService::class.java) ?: error("PomodoroTimerService not available")
+
+    // Layout orientation tracking
+    private var isHorizontalLayout = false
 
     // Mode selector
     private val modeComboBox = JComboBox(PomodoroMode.entries.toTypedArray()).apply {
@@ -56,9 +63,18 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
         setupListeners()
         observeTimer()
         updateSettingsPanelVisibility()
+        setupLayoutListener()
     }
 
     private fun buildUI() {
+        if(isHorizontalLayout) {
+            buildHorizontalLayout()
+        } else {
+            buildVerticalLayout()
+        }
+    }
+
+    private fun buildVerticalLayout() {
         // Top panel with mode selector
         val topPanel = JPanel(BorderLayout(5, 5)).apply {
             border = BorderFactory.createEmptyBorder(10, 10, 5, 10)
@@ -103,6 +119,10 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
         add(settingsPanel, BorderLayout.SOUTH)
     }
 
+    private fun buildHorizontalLayout() {
+        buildVerticalLayout()
+    }
+
     private fun setupListeners() {
         startButton.addActionListener { timerService.start() }
         pauseButton.addActionListener { timerService.pause() }
@@ -132,6 +152,46 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
 
     private fun updateProgressBar(totalSessions: Int) {
         sessionIndicator.updateSessions(timerService.currentSession.value, totalSessions)
+    }
+
+    private fun setupLayoutListener() {
+        addComponentListener(object : ComponentAdapter() {
+            override fun componentResized(e: ComponentEvent?) {
+                checkAndUpdateLayout()
+            }
+        })
+    }
+
+    private fun checkAndUpdateLayout() {
+        val width = width
+        val height = height
+
+        // Determine if we should use horizontal layout (width > height * 1.5)
+        val shouldBeHorizontal = width > height * 1.5
+
+        // Only rebuild if layout orientation changed
+        if (shouldBeHorizontal != isHorizontalLayout) {
+            isHorizontalLayout = shouldBeHorizontal
+            rebuildLayout()
+        }
+    }
+
+    private fun rebuildLayout() {
+        // Remove all components
+        removeAll()
+
+        // Rebuild UI with new layout
+        buildUI()
+
+        // Reconnect listeners (buttons are recreated, need new listeners)
+        setupListeners()
+
+        // Update setting panel visibility
+        updateSettingsPanelVisibility()
+
+        // Refresh the panel
+        revalidate()
+        repaint()
     }
 
     private fun observeTimer() {
