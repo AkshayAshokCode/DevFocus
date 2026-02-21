@@ -38,7 +38,7 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
 
     private val sessionTextLabel = JLabel("Session 1 of 4").apply {
         horizontalAlignment = SwingConstants.CENTER
-        font = font.deriveFont(Font.PLAIN, 12f)
+        font = font.deriveFont(Font.BOLD, 14f)
     }
 
     // Circular timer display
@@ -72,6 +72,7 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     private var stateJob: Job? = null
     private var timeJob: Job? = null
     private var sessionJob: Job? = null
+    private var phaseJob: Job? = null
 
     init {
         buildUI()
@@ -222,7 +223,8 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
             timerService.timeLeft.collectLatest { time ->
                 SwingUtilities.invokeLater {
                     val progress = timerService.getProgress()
-                    circularTimer.updateTimer(time, progress, false)
+                    val isBreak = timerService.currentPhase.value == PomodoroTimerService.TimerPhase.BREAK
+                    circularTimer.updateTimer(time, progress, isBreak)
                 }
             }
         }
@@ -252,8 +254,20 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
             timerService.currentSession.collectLatest { session ->
                 SwingUtilities.invokeLater {
                     val settings = timerService.getSettings()
-                    sessionIndicator.updateSessions(session, settings.sessionsPerRound)
+                    val isBreak = timerService.currentPhase.value == PomodoroTimerService.TimerPhase.BREAK
+                    sessionIndicator.updateSessions(session, settings.sessionsPerRound, isBreak)
                     sessionTextLabel.text = "Session $session of ${settings.sessionsPerRound}"
+                }
+            }
+        }
+
+        phaseJob = scope.launch {
+            timerService.currentPhase.collectLatest { phase ->
+                SwingUtilities.invokeLater {
+                    val settings = timerService.getSettings()
+                    val session = timerService.currentSession.value
+                    val isBreak = phase == PomodoroTimerService.TimerPhase.BREAK
+                    sessionIndicator.updateSessions(session, settings.sessionsPerRound, isBreak)
                 }
             }
         }
@@ -263,6 +277,7 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
         stateJob?.cancel()
         timeJob?.cancel()
         sessionJob?.cancel()
+        phaseJob?.cancel()
         scope.cancel()
     }
 }

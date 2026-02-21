@@ -31,7 +31,7 @@ class PomodoroTimerService(private val project: Project) {
     private var job: Job? = null
 
     private var settings = PomodoroMode.CLASSIC.toSettings()
-    private var currentPhase = TimerPhase.WORK
+    private var internalPhase = TimerPhase.WORK
     private var remainingTimeMs: Long = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
 
     private val _timeLeft = MutableStateFlow(formatTime(remainingTimeMs))
@@ -42,6 +42,9 @@ class PomodoroTimerService(private val project: Project) {
 
     private val _currentSession = MutableStateFlow(1)
     val currentSession: StateFlow<Int> = _currentSession
+
+    private val _currentPhase = MutableStateFlow(TimerPhase.WORK)
+    val currentPhase: StateFlow<TimerPhase> = _currentPhase
 
     private val _settings = MutableStateFlow(settings)
     val settingsFlow: StateFlow<PomodoroSettings> = _settings
@@ -70,7 +73,7 @@ class PomodoroTimerService(private val project: Project) {
         val currentSessionNum = _currentSession.value
         val totalSessions = settings.sessionsPerRound
 
-        if (currentPhase == TimerPhase.WORK) {
+        if (internalPhase == TimerPhase.WORK) {
             // Work session complete
             if (currentSessionNum >= totalSessions) {
                 // Last session complete - all done!
@@ -84,23 +87,27 @@ class PomodoroTimerService(private val project: Project) {
                     .notify(project)
 
                 // Reset to initial state
-                currentPhase = TimerPhase.WORK
+                internalPhase = TimerPhase.WORK
+                _currentPhase.value = TimerPhase.WORK
                 _currentSession.value = 1
                 remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
                 _timeLeft.value = formatTime(remainingTimeMs)
             } else {
                 // Work session complete - start break
+                _currentSession.value = currentSessionNum + 1
+
                 NotificationGroupManager.getInstance()
                     .getNotificationGroup(NOTIFICATION_GROUP_ID)
                     .createNotification(
-                        "\uD83C\uDF45 Session Complete!",
+                        "\uD83C\uDF45 Session $currentSessionNum Complete!",
                         "Great work! Starting ${settings.breakMinutes}-minute break ☕.",
                         NotificationType.INFORMATION
                     )
                     .notify(project)
 
                 // Start break timer
-                currentPhase = TimerPhase.BREAK
+                internalPhase = TimerPhase.BREAK
+                _currentPhase.value = TimerPhase.BREAK
                 remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.breakMinutes.toLong())
                 _timeLeft.value = formatTime(remainingTimeMs)
                 start()
@@ -119,7 +126,8 @@ class PomodoroTimerService(private val project: Project) {
                 .notify(project)
 
             // Start next work session
-            currentPhase = TimerPhase.WORK
+            internalPhase = TimerPhase.WORK
+            _currentPhase.value = TimerPhase.WORK
             _currentSession.value = currentSessionNum + 1
             remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
             _timeLeft.value = formatTime(remainingTimeMs)
@@ -141,7 +149,8 @@ class PomodoroTimerService(private val project: Project) {
         job = null
 
         // Reset to initial state
-        currentPhase = TimerPhase.WORK
+        internalPhase = TimerPhase.WORK
+        _currentPhase.value = TimerPhase.WORK
         remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
         _timeLeft.value = formatTime(remainingTimeMs)
         _currentSession.value = 1
@@ -162,7 +171,8 @@ class PomodoroTimerService(private val project: Project) {
 
         settings = newSettings
         _settings.value = newSettings
-        currentPhase = TimerPhase.WORK
+        internalPhase = TimerPhase.WORK
+        _currentPhase.value = TimerPhase.WORK
         remainingTimeMs = TimeUnit.MINUTES.toMillis(newSettings.sessionMinutes.toLong())
         _timeLeft.value = formatTime(remainingTimeMs)
         _currentSession.value = 1
@@ -176,7 +186,7 @@ class PomodoroTimerService(private val project: Project) {
     fun getSettings(): PomodoroSettings = settings
 
     fun getProgress(): Float {
-        val totalMs = if (currentPhase == TimerPhase.WORK) {
+        val totalMs = if (internalPhase == TimerPhase.WORK) {
             TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
         } else {
             TimeUnit.MINUTES.toMillis(settings.breakMinutes.toLong())

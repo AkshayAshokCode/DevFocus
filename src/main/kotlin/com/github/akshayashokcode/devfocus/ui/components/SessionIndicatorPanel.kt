@@ -7,18 +7,25 @@ class SessionIndicatorPanel : JPanel() {
 
     private var currentSession: Int = 1
     private var totalSessions: Int = 4
+    private var isBreakTime: Boolean = false
 
-    private val tomatoSize = 24
-    private val spacing = 10
+    private val completedColor = Color(39, 174, 96)
+    private val workColor = Color(74, 144, 226)
+    private val breakColor = Color(243, 156, 18)
+    private val upcomingColor = Color(149, 165, 166)
+
+    private val indicatorSize = 30
+    private val spacing = 12
 
     init {
         isOpaque = false
         preferredSize = Dimension(200, 50)
     }
 
-    fun updateSessions(current: Int, total: Int) {
+    fun updateSessions(current: Int, total: Int, isBreak: Boolean = false) {
         this.currentSession = current
         this.totalSessions = total
+        this.isBreakTime = isBreak
         repaint()
     }
 
@@ -28,49 +35,57 @@ class SessionIndicatorPanel : JPanel() {
 
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-        val totalWidth = (tomatoSize * totalSessions) + (spacing * (totalSessions - 1))
+        val totalWidth = (indicatorSize * totalSessions) + (spacing * (totalSessions - 1))
         val startX = (width - totalWidth) / 2
-        val startY = (height - tomatoSize) / 2
+        val startY = (height - indicatorSize) / 2
 
         for (i in 1..totalSessions) {
-            val x = startX + (i - 1) * (tomatoSize + spacing)
+            val x = startX + (i - 1) * (indicatorSize + spacing)
 
             if (i < currentSession) {
-                // Completed session - filled tomato
-                drawFilledTomato(g2d, x, startY)
+                // Completed session
+                drawCompletedSession(g2d, x, startY)
             } else if (i == currentSession) {
-                // Current session - outlined tomato with pulse effect
-                drawCurrentTomato(g2d, x, startY)
+                // Current session
+                drawCurrentSession(g2d, x, startY)
             } else {
-                // Future session - empty circle
-                drawEmptyCircle(g2d, x, startY)
+                // Upcoming session
+                drawUpcomingSession(g2d, x, startY)
             }
         }
     }
 
-    private fun drawFilledTomato(g2d: Graphics2D, x: Int, y: Int) {
-        g2d.color = Color(231, 76, 60) // Tomato red
-        g2d.fillOval(x, y, tomatoSize, tomatoSize)
+    private fun drawCompletedSession(g2d: Graphics2D, x: Int, y: Int) {
+        g2d.color = completedColor
+        g2d.fillOval(x, y, indicatorSize, indicatorSize)
 
-        // Add small leaf/stem on top
-        g2d.color = Color(46, 204, 113) // Green
-        val leafSize = 6
-        g2d.fillOval(x + tomatoSize / 2 - leafSize / 2, y - 2, leafSize, leafSize)
+        // Draw white checkmark
+        g2d.color = Color.WHITE
+        g2d.stroke = BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+
+        val checkSize = indicatorSize / 2
+        val centerX = x + indicatorSize / 2
+        val centerY = y + indicatorSize / 2
+
+        val x1 = centerX - checkSize / 3
+        val y1 = centerY
+        val x2 = centerX - checkSize / 6
+        val y2 = centerY + checkSize / 3
+        g2d.drawLine(x1, y1, x2, y2)
+
+        val x3 = centerX + checkSize / 2
+        val y3 = centerY - checkSize / 3
+        g2d.drawLine(x2, y2, x3, y3)
     }
 
-    private fun drawCurrentTomato(g2d: Graphics2D, x: Int, y: Int) {
-        // Outlined tomato for current session
-        g2d.color = Color(231, 76, 60)
-        g2d.stroke = BasicStroke(3f)
-        g2d.drawOval(x + 2, y + 2, tomatoSize - 4, tomatoSize - 4)
-
-        // Small filled center
-        g2d.fillOval(x + tomatoSize / 2 - 4, y + tomatoSize / 2 - 4, 8, 8)
+    private fun drawCurrentSession(g2d: Graphics2D, x: Int, y: Int) {
+        g2d.color = if (isBreakTime) breakColor else workColor
+        g2d.fillOval(x, y, indicatorSize, indicatorSize)
     }
 
-    private fun drawEmptyCircle(g2d: Graphics2D, x: Int, y: Int) {
-        g2d.color = Color(189, 195, 199) // Light gray
+    private fun drawUpcomingSession(g2d: Graphics2D, x: Int, y: Int) {
+        g2d.color = upcomingColor
         g2d.stroke = BasicStroke(2.5f)
-        g2d.drawOval(x + 2, y + 2, tomatoSize - 4, tomatoSize - 4)
+        g2d.drawOval(x + 2, y + 2, indicatorSize - 4, indicatorSize - 4)
     }
 }
