@@ -21,7 +21,7 @@ Use it to set focused 25-minute sessions, get break reminders, and track your pr
 - 💡 Simple, unobtrusive design
 - 🧠 Works in Android Studio and IntelliJ IDEA
 
-## Installation (NOT PUBLISHED YET)
+## Installation
 
 - Using the IDE built-in plugin system:
   
@@ -30,19 +30,12 @@ Use it to set focused 25-minute sessions, get break reminders, and track your pr
   
 - Using JetBrains Marketplace:
 
-  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
+  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/30114) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
 
-  You can also download the [latest release](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID/versions) from JetBrains Marketplace and install it manually using
+  You can also download the [latest release](https://plugins.jetbrains.com/plugin/30114/versions) from JetBrains Marketplace and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
 - Manually:
 
   Download the [latest release](https://github.com/AkshayAshokCode/DevFocus/releases/latest) and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
-
-
----
-Plugin based on the [IntelliJ Platform Plugin Template][template].
-
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
