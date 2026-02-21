@@ -1,8 +1,8 @@
 # DevFocus
 
 ![Build](https://github.com/AkshayAshokCode/DevFocus/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
+[![Version](https://img.shields.io/jetbrains/plugin/v/30114.svg)](https://plugins.jetbrains.com/plugin/30114)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/30114.svg)](https://plugins.jetbrains.com/plugin/30114)
 
 DevFocus is a simple, elegant Pomodoro timer plugin for Android Studio and IntelliJ IDEA.  
 Designed to help developers stay focused, take breaks, and manage their productivity — right inside the IDE.
