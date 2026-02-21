@@ -16,7 +16,7 @@ class CircularTimerPanel : JPanel() {
     private val backgroundColor = Color(224, 224, 224) // Light gray
 
     private val diameter = 180
-    private val strokeWidth = 10f
+    private val strokeWidth = 12f
 
     init {
         preferredSize = Dimension(diameter + 40, diameter + 40)

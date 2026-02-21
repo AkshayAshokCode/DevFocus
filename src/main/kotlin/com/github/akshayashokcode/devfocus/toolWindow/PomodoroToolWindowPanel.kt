@@ -11,6 +11,7 @@ import com.intellij.ui.components.JBPanel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import java.awt.BorderLayout
+import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.event.ComponentAdapter
@@ -32,6 +33,11 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     // Info label showing current mode settings
     private val infoLabel = JLabel("📊 25 min work • 5 min break").apply {
         horizontalAlignment = SwingConstants.CENTER
+        font = font.deriveFont(Font.BOLD, 12f)
+    }
+
+    private val sessionTextLabel = JLabel("Session 1 of 4").apply {
+        horizontalAlignment = SwingConstants.CENTER
         font = font.deriveFont(Font.PLAIN, 12f)
     }
 
@@ -42,9 +48,18 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     private val sessionIndicator = SessionIndicatorPanel()
 
     // Control buttons
-    private val startButton = JButton("Start")
-    private val pauseButton = JButton("Pause")
-    private val resetButton = JButton("Reset")
+    private val startButton = JButton("Start").apply {
+        preferredSize = Dimension(80, 32)
+        // Make it a prominent primary button
+        putClientProperty("JButton.buttonType", "default")
+        font = font.deriveFont(Font.BOLD)
+    }
+    private val pauseButton = JButton("Pause").apply {
+        preferredSize = Dimension(80, 32)
+    }
+    private val resetButton = JButton("Reset").apply {
+        preferredSize = Dimension(80, 32)
+    }
 
     // Custom settings panel (only visible when Custom mode selected)
     private val settingsPanel = PomodoroSettingsPanel { session, breakTime, sessions ->
@@ -82,24 +97,29 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
         }
 
         // Info panel
-        val infoPanel = JPanel(FlowLayout(FlowLayout.CENTER)).apply {
+        val infoPanel = JPanel(FlowLayout(FlowLayout.CENTER, 0, 5)).apply {
             add(infoLabel)
         }
 
         // Timer panel
         val timerPanel = JPanel(BorderLayout()).apply {
-            border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
+            border = BorderFactory.createEmptyBorder(15, 10, 10, 10)
             add(circularTimer, BorderLayout.CENTER)
+        }
+
+        // Session text label panel
+        val sessionPanel = JPanel(FlowLayout(FlowLayout.CENTER, 0, 5)).apply {
+            add(sessionTextLabel)
         }
 
         // Progress panel
         val progressPanel = JPanel(BorderLayout(5, 5)).apply {
-            border = BorderFactory.createEmptyBorder(0, 20, 10, 20)
+            border = BorderFactory.createEmptyBorder(5, 20, 10, 20)
             add(sessionIndicator, BorderLayout.CENTER)
         }
 
         // Button panel
-        val buttonPanel = JPanel(FlowLayout(FlowLayout.CENTER, 10, 5)).apply {
+        val buttonPanel = JPanel(FlowLayout(FlowLayout.CENTER, 8, 5)).apply {
             add(startButton)
             add(pauseButton)
             add(resetButton)
@@ -110,6 +130,7 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
             add(infoPanel)
             add(timerPanel)
+            add(sessionPanel)
             add(progressPanel)
             add(buttonPanel)
         }
@@ -151,7 +172,9 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     }
 
     private fun updateProgressBar(totalSessions: Int) {
-        sessionIndicator.updateSessions(timerService.currentSession.value, totalSessions)
+        val currentSession = timerService.currentSession.value
+        sessionIndicator.updateSessions(currentSession, totalSessions)
+        sessionTextLabel.text = "Session $currentSession of $totalSessions"
     }
 
     private fun setupLayoutListener() {
@@ -212,6 +235,15 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
                     resetButton.isEnabled = it != PomodoroTimerService.TimerState.IDLE
                     // Disable mode selector when timer is active (running or paused)
                     modeComboBox.isEnabled = it == PomodoroTimerService.TimerState.IDLE
+
+                    // Hide custom settings panel when timer is active
+                    if (it != PomodoroTimerService.TimerState.IDLE && modeComboBox.selectedItem == PomodoroMode.CUSTOM) {
+                        settingsPanel.isVisible = false
+                        revalidate()
+                        repaint()
+                    } else {
+                        updateSettingsPanelVisibility()
+                    }
                 }
             }
         }
@@ -221,6 +253,7 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
                 SwingUtilities.invokeLater {
                     val settings = timerService.getSettings()
                     sessionIndicator.updateSessions(session, settings.sessionsPerRound)
+                    sessionTextLabel.text = "Session $session of ${settings.sessionsPerRound}"
                 }
             }
         }

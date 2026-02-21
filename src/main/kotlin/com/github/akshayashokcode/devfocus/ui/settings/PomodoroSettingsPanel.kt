@@ -3,20 +3,31 @@ package com.github.akshayashokcode.devfocus.ui.settings
 import com.github.akshayashokcode.devfocus.util.SettingsValidationResult
 import com.github.akshayashokcode.devfocus.util.validateSettings
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.GridLayout
 import javax.swing.*
 import javax.swing.border.LineBorder
 
 class PomodoroSettingsPanel(
     private val applySettingsCallback: (Int, Int, Int) -> Unit
-) : JPanel(GridLayout(4, 2, 5, 5)) {
+) : JPanel(GridLayout(4, 2, 8, 5)) {
 
-    private val sessionField = JTextField("25")
-    private val breakField = JTextField("5")
-    private val sessionsField = JTextField("4")
-    private val applyButton = JButton("Apply")
+    private val sessionField = JTextField("25").apply {
+        preferredSize = Dimension(60, 28)
+    }
+    private val breakField = JTextField("5").apply {
+        preferredSize = Dimension(60, 28)
+    }
+    private val sessionsField = JTextField("4").apply {
+        preferredSize = Dimension(60, 28)
+    }
+    private val applyButton = JButton("Apply").apply {
+        preferredSize = Dimension(100, 32)
+    }
 
     init {
+        border = BorderFactory.createEmptyBorder(10, 15, 10, 15)
+
         add(JLabel("Session Duration (min):"))
         add(sessionField)
         add(JLabel("Break Duration (min):"))

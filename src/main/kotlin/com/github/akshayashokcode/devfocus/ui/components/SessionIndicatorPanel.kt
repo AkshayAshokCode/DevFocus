@@ -9,11 +9,11 @@ class SessionIndicatorPanel : JPanel() {
     private var totalSessions: Int = 4
 
     private val tomatoSize = 24
-    private val spacing = 8
+    private val spacing = 10
 
     init {
         isOpaque = false
-        preferredSize = Dimension(200, 40)
+        preferredSize = Dimension(200, 50)
     }
 
     fun updateSessions(current: Int, total: Int) {
@@ -61,16 +61,16 @@ class SessionIndicatorPanel : JPanel() {
     private fun drawCurrentTomato(g2d: Graphics2D, x: Int, y: Int) {
         // Outlined tomato for current session
         g2d.color = Color(231, 76, 60)
-        g2d.stroke = BasicStroke(2.5f)
+        g2d.stroke = BasicStroke(3f)
         g2d.drawOval(x + 2, y + 2, tomatoSize - 4, tomatoSize - 4)
 
         // Small filled center
-        g2d.fillOval(x + tomatoSize / 2 - 3, y + tomatoSize / 2 - 3, 6, 6)
+        g2d.fillOval(x + tomatoSize / 2 - 4, y + tomatoSize / 2 - 4, 8, 8)
     }
 
     private fun drawEmptyCircle(g2d: Graphics2D, x: Int, y: Int) {
         g2d.color = Color(189, 195, 199) // Light gray
-        g2d.stroke = BasicStroke(2f)
+        g2d.stroke = BasicStroke(2.5f)
         g2d.drawOval(x + 2, y + 2, tomatoSize - 4, tomatoSize - 4)
     }
 }
