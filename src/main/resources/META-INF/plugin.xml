@@ -14,10 +14,10 @@
     </description>
 
     <change-notes>
-        Initial release of DevFocus Pomodoro timer.
+        Improved session timer and enhanced UX.
     </change-notes>
 
-    <idea-version since-build="233" until-build="251.*"/>
+    <idea-version since-build="233"/>
 
     <depends>com.intellij.modules.platform</depends>
 
