@@ -39,3 +39,10 @@ Use it to set focused 25-minute sessions, get break reminders, and track your pr
 
   Download the [latest release](https://github.com/AkshayAshokCode/DevFocus/releases/latest) and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
+
+
+## License
+
+DevFocus is licensed under the **MIT License**.
+
+See the [LICENSE](LICENSE) file for more details.
