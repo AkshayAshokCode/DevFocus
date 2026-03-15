@@ -136,3 +136,12 @@ Whether you're debugging a complex issue, implementing a new feature, or learnin
 
   Download the [latest release](https://github.com/AkshayAshokCode/DevFocus/releases/latest) and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
+
+
+## License
+
+DevFocus is licensed under the Apache License 2.0.
+
+Copyright (c) 2026 Akshay Ashok
+
+See the LICENSE file for details.
