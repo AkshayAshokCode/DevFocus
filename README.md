@@ -8,8 +8,105 @@ DevFocus is a simple, elegant Pomodoro timer plugin for Android Studio and Intel
 Designed to help developers stay focused, take breaks, and manage their productivity — right inside the IDE.
 
 <!-- Plugin description -->
-DevFocus helps you apply the Pomodoro Technique to your development workflow without leaving the editor.  
-Use it to set focused 25-minute sessions, get break reminders, and track your progress — all from a minimal, dockable tool window.
+# DevFocus — Pomodoro Timer for JetBrains IDEs
+
+DevFocus is a lightweight Pomodoro timer designed specifically for developers using JetBrains IDEs.  
+Stay focused on your coding sessions without leaving your editor, and maintain a healthy balance between deep work and breaks.
+
+Instead of switching to external productivity apps, DevFocus integrates directly into your IDE so you can manage focus sessions while coding.
+
+---
+
+## Features
+
+### 🎯 Classic Pomodoro
+
+Follow the traditional Pomodoro technique:
+
+- **25 minutes** focused work
+- **5 minutes** break
+
+A simple and proven way to stay productive while avoiding burnout.
+
+---
+
+### 🧠 Deep Work Mode
+
+For longer, distraction-free coding sessions.
+
+- **50 minutes** focused work
+- **10 minutes** break
+
+Perfect for tasks that require deeper concentration like debugging, architecture work, or learning new systems.
+
+---
+
+### ⚙️ Fully Custom Sessions
+
+Create your own focus routine by customizing:
+
+- Work session duration
+- Break duration
+- Number of rounds per session
+
+Adapt the timer to your personal workflow.
+
+---
+
+### ⏱ Visual Circular Timer
+
+DevFocus includes a clean **clockwise circular timer** that visually represents your session progress, making it easy to track time without distractions.
+
+---
+
+### 📍 Status Bar Timer
+
+Your current session time is always visible in the **IDE status bar**, even if the DevFocus tool window is minimized.
+
+This ensures you can stay aware of your focus session while continuing to work normally in the editor.
+
+---
+
+### 🔔 Smart Session Notifications
+
+DevFocus notifies you when:
+
+- A **focus session is completed**
+- A **break session is completed**
+
+These notifications help maintain the Pomodoro rhythm without constantly checking the timer.
+
+---
+
+## Why DevFocus?
+
+Many Pomodoro apps run outside the IDE, forcing developers to constantly switch context.
+
+DevFocus keeps everything inside your development environment so you can:
+
+- Stay focused while coding
+- Maintain productive work/break cycles
+- Avoid workflow interruptions
+
+---
+
+## Supported IDEs
+
+DevFocus works with JetBrains IDEs including:
+
+- IntelliJ IDEA
+- Android Studio
+- PyCharm
+- WebStorm
+- CLion
+- Rider
+- Other IntelliJ-based IDEs
+
+---
+
+## Boost Your Coding Focus
+
+Whether you're debugging a complex issue, implementing a new feature, or learning a new technology, DevFocus helps you stay in the zone while maintaining a healthy development rhythm.
 
 <!-- Plugin description end -->
 
