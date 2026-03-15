@@ -34,6 +34,6 @@
         <postStartupActivity implementation="com.github.akshayashokcode.devfocus.startup.MyProjectActivity" />
         <projectService serviceImplementation="com.github.akshayashokcode.devfocus.services.pomodoro.PomodoroTimerService"/>
         <notificationGroup id="DevFocus Notifications" displayType="BALLOON"/>
-        <statusBarWidgetFactory implementation="com.github.akshayashokcode.devfocus.statusbar.PomodoroStatusBarWidgetFactory"/>
+        <statusBarWidgetFactory id="DevFocusStatusBarWidget" implementation="com.github.akshayashokcode.devfocus.statusbar.PomodoroStatusBarWidgetFactory"/>
     </extensions>
 </idea-plugin>
