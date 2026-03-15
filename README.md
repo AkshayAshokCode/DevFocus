@@ -43,7 +43,7 @@ Use it to set focused 25-minute sessions, get break reminders, and track your pr
 
 ## License
 
-DevFocus is licensed under the MIT License.
+DevFocus is licensed under the Apache License 2.0.
 
 Copyright (c) 2026 Akshay Ashok
 
