@@ -2,6 +2,7 @@ package com.github.akshayashokcode.devfocus.services.pomodoro
 
 import com.github.akshayashokcode.devfocus.model.PomodoroMode
 import com.github.akshayashokcode.devfocus.model.PomodoroSettings
+import com.github.akshayashokcode.devfocus.util.SoundPlayer
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.components.Service
@@ -77,6 +78,7 @@ class PomodoroTimerService(private val project: Project) {
             // Work session complete
             if (currentSessionNum >= totalSessions) {
                 // Last session complete - all done!
+                playCompleteSound()
                 NotificationGroupManager.getInstance()
                     .getNotificationGroup(NOTIFICATION_GROUP_ID)
                     .createNotification(
@@ -94,6 +96,7 @@ class PomodoroTimerService(private val project: Project) {
                 _timeLeft.value = formatTime(remainingTimeMs)
             } else {
                 // Work session complete - start break
+                playBreakSound()
                 _currentSession.value = currentSessionNum + 1
 
                 NotificationGroupManager.getInstance()
@@ -116,6 +119,7 @@ class PomodoroTimerService(private val project: Project) {
         } else {
             // Break complete
             // More sessions remaining - start next session
+            playWorkSound()
             NotificationGroupManager.getInstance()
                 .getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(
@@ -192,5 +196,17 @@ class PomodoroTimerService(private val project: Project) {
             TimeUnit.MINUTES.toMillis(settings.breakMinutes.toLong())
         }
         return if (totalMs > 0) remainingTimeMs.toFloat() / totalMs.toFloat() else 0f
+    }
+
+    private fun playBreakSound() {
+        SoundPlayer.play("break.wav")
+    }
+
+    private fun playWorkSound() {
+        SoundPlayer.play("work.wav")
+    }
+
+    private fun playCompleteSound() {
+        SoundPlayer.play("complete.wav")
     }
 }
