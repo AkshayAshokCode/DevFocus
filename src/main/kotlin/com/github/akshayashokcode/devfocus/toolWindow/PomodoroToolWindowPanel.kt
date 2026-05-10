@@ -5,7 +5,9 @@ import com.github.akshayashokcode.devfocus.model.PomodoroSettings
 import com.github.akshayashokcode.devfocus.services.pomodoro.PomodoroTimerService
 import com.github.akshayashokcode.devfocus.ui.components.CircularTimerPanel
 import com.github.akshayashokcode.devfocus.ui.components.SessionIndicatorPanel
+import com.github.akshayashokcode.devfocus.ui.settings.PomodoroSettingsDialog
 import com.github.akshayashokcode.devfocus.ui.settings.PomodoroSettingsPanel
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBPanel
@@ -29,6 +31,14 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     // Mode selector
     private val modeComboBox = JComboBox(PomodoroMode.entries.toTypedArray()).apply {
         selectedItem = PomodoroMode.CLASSIC
+    }
+
+    // Setting button
+    private val settingsButton = JButton(AllIcons.General.GearPlain).apply {
+        toolTipText = "Settings"
+        isBorderPainted = false
+        isContentAreaFilled = false
+        isFocusPainted = false
     }
 
     // Info label showing current mode settings
@@ -94,6 +104,7 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
         val topPanel = JPanel(BorderLayout(5, 5)).apply {
             border = BorderFactory.createEmptyBorder(10, 10, 5, 10)
             add(modeComboBox, BorderLayout.CENTER)
+            add(settingsButton, BorderLayout.EAST)
         }
 
         // Info panel
@@ -157,6 +168,10 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
                 updateProgressBar(selectedMode.sessionsPerRound)
             }
             updateSettingsPanelVisibility()
+        }
+
+        settingsButton.addActionListener {
+            PomodoroSettingsDialog(project).show()
         }
     }
 
