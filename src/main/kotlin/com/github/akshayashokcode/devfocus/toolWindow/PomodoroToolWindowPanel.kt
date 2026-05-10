@@ -34,7 +34,7 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     }
 
     // Setting button
-    private val settingsButton = JButton(AllIcons.General.GearPlain).apply {
+    private val settingsButton = JButton(AllIcons.General.Settings).apply {
         toolTipText = "Settings"
         isBorderPainted = false
         isContentAreaFilled = false
