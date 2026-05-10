@@ -1,5 +1,7 @@
 package com.github.akshayashokcode.devfocus.util
 
+import com.github.akshayashokcode.devfocus.services.settings.DevFocusSettingsState
+import com.intellij.openapi.application.ApplicationManager
 import java.io.BufferedInputStream
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
@@ -11,6 +13,12 @@ object SoundPlayer {
     fun play(soundFileName: String) {
 
         try {
+            val settings = ApplicationManager.getApplication()
+                .getService(DevFocusSettingsState::class.java)
+
+            if (!settings.soundEnabled) {
+                return
+            }
 
             val resourceStream = SoundPlayer::class.java
                 .getResourceAsStream("/sounds/$soundFileName")
