@@ -28,28 +28,26 @@ class PomodoroStatusBarWidget(private val project: Project) : StatusBarWidget, S
     private var stateJob: Job? = null
     private var sessionJob: Job? = null
     private var phaseJob: Job? = null
-
+    private var dailyJob: Job? = null
 
     init {
         observeTimer()
     }
+
     override fun ID(): @NonNls String = ID
-
     override fun getPresentation(): StatusBarWidget.WidgetPresentation = this
-
-    override fun install(statusBar: StatusBar) {
-        this.statusBar = statusBar
-    }
+    override fun install(statusBar: StatusBar) { this.statusBar = statusBar }
 
     override fun dispose() {
         timeJob?.cancel()
         stateJob?.cancel()
         sessionJob?.cancel()
         phaseJob?.cancel()
+        dailyJob?.cancel()
         scope.cancel()
     }
-    override fun getText(): String = currentText
 
+    override fun getText(): String = currentText
     override fun getAlignment(): Float = 0.5f
 
     override fun getTooltipText(): String {
@@ -57,63 +55,41 @@ class PomodoroStatusBarWidget(private val project: Project) : StatusBarWidget, S
         val phase = timerService.currentPhase.value
         val session = timerService.currentSession.value
         val settings = timerService.getSettings()
+        val daily = timerService.dailySessionCount.value
 
         return when (state) {
-            PomodoroTimerService.TimerState.IDLE -> "DevFocus - Click to open"
-            PomodoroTimerService.TimerState.RUNNING -> {
-                if (phase == PomodoroTimerService.TimerPhase.WORK) {
-                    "Work Session $session/${settings.sessionsPerRound} - Running"
-                } else {
-                    "Break Time - Running"
-                }
+            PomodoroTimerService.TimerState.IDLE -> {
+                if (daily > 0) "DevFocus — $daily session${if (daily == 1) "" else "s"} completed today. Click to open."
+                else "DevFocus — Click to open"
             }
-            PomodoroTimerService.TimerState.PAUSED -> {
-                if (phase == PomodoroTimerService.TimerPhase.WORK) {
-                    "Work Session $session/${settings.sessionsPerRound} - Paused"
-                } else {
-                    "Break Time - Paused"
+            PomodoroTimerService.TimerState.RUNNING, PomodoroTimerService.TimerState.PAUSED -> {
+                val stateLabel = if (state == PomodoroTimerService.TimerState.RUNNING) "Running" else "Paused"
+                when (phase) {
+                    PomodoroTimerService.TimerPhase.WORK ->
+                        "Work Session $session/${settings.sessionsPerRound} — $stateLabel"
+                    PomodoroTimerService.TimerPhase.BREAK ->
+                        "Break — $stateLabel"
+                    PomodoroTimerService.TimerPhase.LONG_BREAK ->
+                        "Long Break — $stateLabel"
                 }
             }
         }
     }
 
-    override fun getClickConsumer(): Consumer<MouseEvent>? {
-        return Consumer { event ->
-            if (event.button == MouseEvent.BUTTON1) {
-                // Left click - open focus tool window
-                SwingUtilities.invokeLater {
-                    val toolWindowManager = ToolWindowManager.getInstance(project)
-                    val toolWindow = toolWindowManager.getToolWindow("DevFocus")
-                    toolWindow?.show()
-                }
+    override fun getClickConsumer(): Consumer<MouseEvent> = Consumer { event ->
+        if (event.button == MouseEvent.BUTTON1) {
+            SwingUtilities.invokeLater {
+                ToolWindowManager.getInstance(project).getToolWindow("DevFocus")?.show()
             }
         }
     }
 
     private fun observeTimer() {
-        timeJob = scope.launch {
-            timerService.timeLeft.collectLatest {
-                updateText()
-            }
-        }
-
-        stateJob = scope.launch {
-            timerService.state.collectLatest {
-                updateText()
-            }
-        }
-
-        sessionJob = scope.launch {
-            timerService.currentSession.collectLatest {
-                updateText()
-            }
-        }
-
-        phaseJob = scope.launch {
-            timerService.currentPhase.collectLatest {
-                updateText()
-            }
-        }
+        timeJob  = scope.launch { timerService.timeLeft.collectLatest { updateText() } }
+        stateJob = scope.launch { timerService.state.collectLatest { updateText() } }
+        sessionJob = scope.launch { timerService.currentSession.collectLatest { updateText() } }
+        phaseJob = scope.launch { timerService.currentPhase.collectLatest { updateText() } }
+        dailyJob = scope.launch { timerService.dailySessionCount.collectLatest { updateText() } }
     }
 
     private fun updateText() {
@@ -122,27 +98,26 @@ class PomodoroStatusBarWidget(private val project: Project) : StatusBarWidget, S
         val time = timerService.timeLeft.value
         val session = timerService.currentSession.value
         val settings = timerService.getSettings()
+        val daily = timerService.dailySessionCount.value
 
-        // Only show text when timer is active (running or paused)
         val isActive = state == PomodoroTimerService.TimerState.RUNNING ||
                 state == PomodoroTimerService.TimerState.PAUSED
 
         currentText = if (isActive) {
-            // Use stopwatch for work, coffee for break
-            val prefix = if (phase == PomodoroTimerService.TimerPhase.WORK) "⏱\uFE0F" else "☕"
-            val sessionInfo = if (phase == PomodoroTimerService.TimerPhase.WORK) {
-                " | Session $session/${settings.sessionsPerRound}"
-            } else {
-                " | Break"
+            val pauseMarker = if (state == PomodoroTimerService.TimerState.PAUSED) " ⏸" else ""
+            when (phase) {
+                PomodoroTimerService.TimerPhase.WORK ->
+                    "⏱️ $time | Session $session/${settings.sessionsPerRound}$pauseMarker"
+                PomodoroTimerService.TimerPhase.BREAK ->
+                    "☕ $time | Break$pauseMarker"
+                PomodoroTimerService.TimerPhase.LONG_BREAK ->
+                    "🌟 $time | Long Break$pauseMarker"
             }
-            "$prefix $time$sessionInfo"
         } else {
-            "" // Empty string when idle - Widget still exists but shows nothing
+            // Idle: show daily count as ambient progress, or just the plugin name
+            if (daily > 0) "🍅 $daily today" else "🍅 DevFocus"
         }
 
-        SwingUtilities.invokeLater {
-            statusBar?.updateWidget(ID)
-        }
-
+        SwingUtilities.invokeLater { statusBar?.updateWidget(ID) }
     }
 }

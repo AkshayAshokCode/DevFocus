@@ -21,19 +21,37 @@
 
     <depends>com.intellij.modules.platform</depends>
 
-    <!-- Optional Android support -->
-    <depends optional="true">org.jetbrains.android</depends>
-
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="com.github.akshayashokcode.devfocus.toolWindow.DevFocusToolWindowFactory"
                     id="DevFocus"
-                    icon = "/icons/startTimer.svg"
+                    icon="/icons/startTimer.svg"
         />
-        <postStartupActivity implementation="com.github.akshayashokcode.devfocus.startup.MyProjectActivity" />
         <projectService serviceImplementation="com.github.akshayashokcode.devfocus.services.pomodoro.PomodoroTimerService"/>
         <notificationGroup id="DevFocus Notifications" displayType="BALLOON"/>
-        <statusBarWidgetFactory id="DevFocusStatusBarWidget" implementation="com.github.akshayashokcode.devfocus.statusbar.PomodoroStatusBarWidgetFactory"/>
+        <statusBarWidgetFactory id="DevFocusStatusBarWidget"
+                                implementation="com.github.akshayashokcode.devfocus.statusbar.PomodoroStatusBarWidgetFactory"/>
     </extensions>
+
+    <actions>
+        <group id="DevFocus.ActionGroup" text="DevFocus" popup="true">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+
+            <action id="DevFocus.Toggle"
+                    class="com.github.akshayashokcode.devfocus.actions.DevFocusToggleAction"
+                    text="Start / Pause Timer"
+                    description="Start the DevFocus timer, or pause it if already running"/>
+
+            <action id="DevFocus.Reset"
+                    class="com.github.akshayashokcode.devfocus.actions.DevFocusResetAction"
+                    text="Reset Timer"
+                    description="Reset the DevFocus timer to the start of the current round"/>
+
+            <action id="DevFocus.SkipBreak"
+                    class="com.github.akshayashokcode.devfocus.actions.DevFocusSkipBreakAction"
+                    text="Skip Break"
+                    description="Skip the current break and start the next work session immediately"/>
+        </group>
+    </actions>
 </idea-plugin>
