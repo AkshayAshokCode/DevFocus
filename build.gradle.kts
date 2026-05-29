@@ -1,7 +1,6 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
-import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 
 plugins {
     id("java") // Java support
@@ -83,7 +82,7 @@ intellijPlatform {
 
         ideaVersion {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
-            untilBuild = providers.gradleProperty("pluginUntilBuild")
+            // untilBuild omitted — no upper cap, plugin installs on all IDE versions from sinceBuild onwards
         }
     }
 
@@ -151,13 +150,6 @@ intellijPlatformTesting {
 
             plugins {
                 robotServerPlugin()
-            }
-        }
-
-        runIde {
-            register("runAndroidStudio") {
-                type.set(IntelliJPlatformType.AndroidStudio)
-                version.set("2024.3.2.14")
             }
         }
     }
