@@ -10,20 +10,17 @@ class CircularTimerPanel : JPanel() {
     private var progress: Float = 1.0f // 0.0 to 1.0 (1.0 = full, 0.0 = empty)
     private var isBreakTime: Boolean = false
 
-    // Colors following UX best practices
-    private val workColor = Color(74, 144, 226) // Blue for focus/work
-    private val breakColor = Color(243, 156, 18) // Orange for rest
-    // Dynamic so it adapts to light/dark themes
+    private val workColor = Color(74, 144, 226)
+    private val breakColor = Color(243, 156, 18)
     private val backgroundColor: Color
         get() = UIManager.getColor("Separator.separatorColor")
             ?: UIManager.getColor("Component.borderColor")
             ?: Color(200, 200, 200)
 
-    private val diameter = 180
-    private val strokeWidth = 12f
-
     init {
-        preferredSize = Dimension(diameter + 40, diameter + 40)
+        minimumSize = Dimension(80, 80)
+        preferredSize = Dimension(200, 200)
+        maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
         isOpaque = false
     }
 
@@ -38,43 +35,39 @@ class CircularTimerPanel : JPanel() {
         super.paintComponent(g)
         val g2d = g as Graphics2D
 
-        // Enable antialiasing for smooth circles
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+
+        // Derive all dimensions from actual panel size so it scales at any size
+        val padding = 16
+        val diameter = (minOf(width, height) - padding).coerceIn(60, 180)
+        val strokeWidth = (diameter * 0.065f).coerceIn(5f, 15f)
+        val fontSize = (diameter * 0.19f).coerceIn(12f, 44f).toInt()
 
         val centerX = width / 2
         val centerY = height / 2
         val radius = diameter / 2
 
-        // Calculate bounds for the arc
         val arcX = centerX - radius
         val arcY = centerY - radius
-        val arcSize = diameter
 
-        // Draw background circle (full circle in light gray)
+        // Background track
         g2d.stroke = BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
         g2d.color = backgroundColor
-        g2d.drawArc(arcX, arcY, arcSize, arcSize, 0, 360)
+        g2d.drawArc(arcX, arcY, diameter, diameter, 0, 360)
 
-        // Draw progress arc (clockwise from top, depleting)
-        // Start at 90 degrees (top of circle) and go clockwise
+        // Progress arc (clockwise from top, depleting)
         val arcAngle = (360 * progress).toInt()
         g2d.color = if (isBreakTime) breakColor else workColor
         g2d.stroke = BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
-        g2d.drawArc(arcX, arcY, arcSize, arcSize, 90, -arcAngle) // Negative for clockwise
+        g2d.drawArc(arcX, arcY, diameter, diameter, 90, -arcAngle)
 
-        // Draw time text in center
+        // Time text centered inside arc
         g2d.color = UIManager.getColor("Label.foreground") ?: Color.BLACK
-        val font = Font("SansSerif", Font.BOLD, 36)
-        g2d.font = font
-
+        g2d.font = Font("SansSerif", Font.BOLD, fontSize)
         val metrics = g2d.fontMetrics
-        val textWidth = metrics.stringWidth(timeText)
-        val textHeight = metrics.height
-
-        val textX = centerX - textWidth / 2
-        val textY = centerY + textHeight / 4
-
+        val textX = centerX - metrics.stringWidth(timeText) / 2
+        val textY = centerY + metrics.height / 4
         g2d.drawString(timeText, textX, textY)
     }
 }

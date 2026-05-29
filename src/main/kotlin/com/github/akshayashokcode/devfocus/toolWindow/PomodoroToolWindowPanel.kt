@@ -18,23 +18,26 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.*
 
 class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLayout()), Disposable {
 
-    private val timerService = project.getService(PomodoroTimerService::class.java) ?: error("PomodoroTimerService not available")
+    private val timerService = project.getService(PomodoroTimerService::class.java)
+        ?: error("PomodoroTimerService not available")
 
-    // Layout orientation tracking
-    private var isHorizontalLayout = false
+    private enum class LayoutMode { COMPACT, VERTICAL, HORIZONTAL }
+    private var currentLayout = LayoutMode.VERTICAL
 
     // Mode selector
     private val modeComboBox = JComboBox(PomodoroMode.entries.toTypedArray()).apply {
         selectedItem = PomodoroMode.CLASSIC
     }
 
-    // Setting button
+    // Settings button
     private val settingsButton = JButton(AllIcons.General.Settings).apply {
         toolTipText = "Settings"
         isBorderPainted = false
@@ -57,13 +60,10 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     private val phaseLabel = JLabel("Focus").apply {
         horizontalAlignment = SwingConstants.CENTER
         font = font.deriveFont(Font.BOLD, 13f)
-        foreground = Color(74, 144, 226) // Matches workColor in CircularTimerPanel
+        foreground = Color(74, 144, 226)
     }
 
-    // Circular timer display
     private val circularTimer = CircularTimerPanel()
-
-    // Session indicator with tomato icons
     private val sessionIndicator = SessionIndicatorPanel()
 
     // Control buttons
@@ -99,65 +99,91 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
         setupLayoutListener()
     }
 
+    // ---------------------------------------------------------------------------
+    // Layout routing
+    // ---------------------------------------------------------------------------
+
     private fun buildUI() {
-        if(isHorizontalLayout) {
-            buildHorizontalLayout()
-        } else {
-            buildVerticalLayout()
+        when (currentLayout) {
+            LayoutMode.COMPACT    -> buildCompactLayout()
+            LayoutMode.VERTICAL   -> buildVerticalLayout()
+            LayoutMode.HORIZONTAL -> buildHorizontalLayout()
         }
     }
 
+    /**
+     * Compact: either dimension < 160px.
+     * Just the circular timer + a row of buttons. Everything else hidden.
+     */
+    private fun buildCompactLayout() {
+        val timerPanel = JPanel(BorderLayout()).apply {
+            border = BorderFactory.createEmptyBorder(6, 6, 4, 6)
+            add(circularTimer, BorderLayout.CENTER)
+        }
+        val buttonPanel = JPanel(FlowLayout(FlowLayout.CENTER, 4, 2)).apply {
+            add(startButton)
+            add(pauseButton)
+            add(resetButton)
+        }
+        add(timerPanel, BorderLayout.CENTER)
+        add(buttonPanel, BorderLayout.SOUTH)
+    }
+
+    /**
+     * Vertical: height >= width.
+     * Mode selector at top. Timer fills all remaining vertical space via
+     * BorderLayout.CENTER so it grows/shrinks naturally. Controls pinned at bottom.
+     *
+     * Scenarios handled:
+     *   - Tall + narrow  → small circle (min(width, timerHeight) drives diameter)
+     *   - Tall + wide    → large circle (width becomes the constraint)
+     */
     private fun buildVerticalLayout() {
-        // Top panel with mode selector
         val topPanel = JPanel(BorderLayout(5, 5)).apply {
-            border = BorderFactory.createEmptyBorder(10, 10, 5, 10)
+            border = BorderFactory.createEmptyBorder(10, 10, 4, 10)
             add(modeComboBox, BorderLayout.CENTER)
             add(settingsButton, BorderLayout.EAST)
         }
 
-        // Info panel
-        val infoPanel = JPanel(FlowLayout(FlowLayout.CENTER, 0, 5)).apply {
+        val infoPanel = JPanel(FlowLayout(FlowLayout.CENTER, 0, 4)).apply {
             add(infoLabel)
         }
 
-        // Timer panel
+        // Timer lives in CENTER — it stretches to fill whatever height is left
         val timerPanel = JPanel(BorderLayout()).apply {
-            border = BorderFactory.createEmptyBorder(15, 10, 10, 10)
+            border = BorderFactory.createEmptyBorder(8, 10, 8, 10)
             add(circularTimer, BorderLayout.CENTER)
         }
 
-        // Session text label panel
-        val sessionPanel = JPanel(FlowLayout(FlowLayout.CENTER, 0, 5)).apply {
+        val phaseLabelPanel = JPanel(FlowLayout(FlowLayout.CENTER, 0, 2)).apply {
+            add(phaseLabel)
+        }
+        val sessionPanel = JPanel(FlowLayout(FlowLayout.CENTER, 0, 2)).apply {
             add(sessionTextLabel)
         }
-
-        // Progress panel
         val progressPanel = JPanel(BorderLayout(5, 5)).apply {
-            border = BorderFactory.createEmptyBorder(5, 20, 10, 20)
+            border = BorderFactory.createEmptyBorder(4, 20, 4, 20)
             add(sessionIndicator, BorderLayout.CENTER)
         }
-
-        // Button panel
         val buttonPanel = JPanel(FlowLayout(FlowLayout.CENTER, 8, 5)).apply {
             add(startButton)
             add(pauseButton)
             add(resetButton)
         }
 
-        // Phase label panel
-        val phaseLabelPanel = JPanel(FlowLayout(FlowLayout.CENTER, 0, 2)).apply {
-            add(phaseLabel)
-        }
-
-        // Center content
-        val centerPanel = JPanel().apply {
+        // Fixed-height controls below the timer
+        val controlsPanel = JPanel().apply {
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
-            add(infoPanel)
-            add(timerPanel)
             add(phaseLabelPanel)
             add(sessionPanel)
             add(progressPanel)
             add(buttonPanel)
+        }
+
+        val centerPanel = JPanel(BorderLayout()).apply {
+            add(infoPanel, BorderLayout.NORTH)
+            add(timerPanel, BorderLayout.CENTER)   // ← grows with panel
+            add(controlsPanel, BorderLayout.SOUTH)
         }
 
         add(topPanel, BorderLayout.NORTH)
@@ -165,9 +191,100 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
         add(settingsPanel, BorderLayout.SOUTH)
     }
 
+    /**
+     * Horizontal: width > height.
+     * Mode selector spans the top. Timer takes left 55%, controls take right 45%.
+     *
+     * Scenarios handled:
+     *   - Wide + tall  → large circle (height drives diameter), ample control space
+     *   - Wide + short → smaller circle, controls stack compactly on the right
+     */
     private fun buildHorizontalLayout() {
-        buildVerticalLayout()
+        val topPanel = JPanel(BorderLayout(5, 5)).apply {
+            border = BorderFactory.createEmptyBorder(8, 10, 4, 10)
+            add(modeComboBox, BorderLayout.CENTER)
+            add(settingsButton, BorderLayout.EAST)
+        }
+
+        val timerPanel = JPanel(BorderLayout()).apply {
+            border = BorderFactory.createEmptyBorder(8, 12, 8, 6)
+            add(circularTimer, BorderLayout.CENTER)
+        }
+
+        val phaseLabelPanel = JPanel(FlowLayout(FlowLayout.CENTER, 0, 2)).apply { add(phaseLabel) }
+        val sessionPanel    = JPanel(FlowLayout(FlowLayout.CENTER, 0, 2)).apply { add(sessionTextLabel) }
+        val progressPanel   = JPanel(BorderLayout(5, 5)).apply {
+            border = BorderFactory.createEmptyBorder(4, 8, 4, 8)
+            add(sessionIndicator, BorderLayout.CENTER)
+        }
+        val buttonPanel = JPanel(FlowLayout(FlowLayout.CENTER, 6, 4)).apply {
+            add(startButton)
+            add(pauseButton)
+            add(resetButton)
+        }
+
+        // Controls centered vertically on the right side
+        val rightPanel = JPanel().apply {
+            layout = BoxLayout(this, BoxLayout.Y_AXIS)
+            border = BorderFactory.createEmptyBorder(4, 4, 4, 12)
+            add(Box.createVerticalGlue())
+            add(phaseLabelPanel)
+            add(sessionPanel)
+            add(progressPanel)
+            add(buttonPanel)
+            add(Box.createVerticalGlue())
+        }
+
+        // Split: timer 55% | controls 45%
+        val splitPanel = JPanel(GridBagLayout()).apply {
+            val gbc = GridBagConstraints().apply {
+                fill = GridBagConstraints.BOTH
+                weighty = 1.0
+            }
+            gbc.weightx = 0.55; gbc.gridx = 0; add(timerPanel, gbc)
+            gbc.weightx = 0.45; gbc.gridx = 1; add(rightPanel, gbc)
+        }
+
+        add(topPanel, BorderLayout.NORTH)
+        add(splitPanel, BorderLayout.CENTER)
+        add(settingsPanel, BorderLayout.SOUTH)
     }
+
+    // ---------------------------------------------------------------------------
+    // Responsive layout detection
+    // ---------------------------------------------------------------------------
+
+    private fun setupLayoutListener() {
+        addComponentListener(object : ComponentAdapter() {
+            override fun componentResized(e: ComponentEvent?) {
+                checkAndUpdateLayout()
+            }
+        })
+    }
+
+    private fun checkAndUpdateLayout() {
+        val newLayout = when {
+            width < 160 || height < 160 -> LayoutMode.COMPACT
+            width > height              -> LayoutMode.HORIZONTAL
+            else                        -> LayoutMode.VERTICAL
+        }
+        if (newLayout != currentLayout) {
+            currentLayout = newLayout
+            rebuildLayout()
+        }
+    }
+
+    private fun rebuildLayout() {
+        removeAll()
+        buildUI()
+        updateSettingsPanelVisibility()
+        revalidate()
+        repaint()
+    }
+
+    // ---------------------------------------------------------------------------
+    // Listeners & helpers
+    // ---------------------------------------------------------------------------
 
     private fun setupListeners() {
         startButton.addActionListener { timerService.start() }
@@ -191,7 +308,8 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
 
     private fun updateSettingsPanelVisibility() {
         val isCustom = modeComboBox.selectedItem == PomodoroMode.CUSTOM
-        settingsPanel.isVisible = isCustom
+        // Never show the custom settings panel in compact mode — no room for it
+        settingsPanel.isVisible = isCustom && currentLayout != LayoutMode.COMPACT
         revalidate()
         repaint()
     }
@@ -206,35 +324,9 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
         sessionTextLabel.text = "Session $currentSession of $totalSessions"
     }
 
-    private fun setupLayoutListener() {
-        addComponentListener(object : ComponentAdapter() {
-            override fun componentResized(e: ComponentEvent?) {
-                checkAndUpdateLayout()
-            }
-        })
-    }
-
-    private fun checkAndUpdateLayout() {
-        val width = width
-        val height = height
-
-        // Determine if we should use horizontal layout (width > height * 1.5)
-        val shouldBeHorizontal = width > height * 1.5
-
-        // Only rebuild if layout orientation changed
-        if (shouldBeHorizontal != isHorizontalLayout) {
-            isHorizontalLayout = shouldBeHorizontal
-            rebuildLayout()
-        }
-    }
-
-    private fun rebuildLayout() {
-        removeAll()
-        buildUI()
-        updateSettingsPanelVisibility()
-        revalidate()
-        repaint()
-    }
+    // ---------------------------------------------------------------------------
+    // Timer observation
+    // ---------------------------------------------------------------------------
 
     private fun observeTimer() {
         timeJob = scope.launch {
@@ -254,18 +346,15 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
                     pauseButton.isEnabled = it == PomodoroTimerService.TimerState.RUNNING
                     resetButton.isEnabled = it != PomodoroTimerService.TimerState.IDLE
 
-                    // Update start button text based on state
                     startButton.text = when (it) {
                         PomodoroTimerService.TimerState.IDLE -> "Start"
                         else -> "Resume"
                     }
 
-                    // Clear all default values
                     startButton.putClientProperty("JButton.buttonType", null)
                     pauseButton.putClientProperty("JButton.buttonType", null)
                     resetButton.putClientProperty("JButton.buttonType", null)
 
-                    // Update default button (blue highlight) based on state
                     when (it) {
                         PomodoroTimerService.TimerState.IDLE -> {
                             startButton.putClientProperty("JButton.buttonType", "default")
@@ -281,7 +370,6 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
                         }
                     }
 
-                    // Check if we're truly idle (session and work phase) or just transitioning
                     val currentSession = timerService.currentSession.value
                     val currentPhase = timerService.currentPhase.value
                     val isTrulyIdle = it == PomodoroTimerService.TimerState.IDLE &&
@@ -290,12 +378,11 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
 
                     modeComboBox.isEnabled = isTrulyIdle
 
-                    // Hide custom settings panel when timer is active
                     if (!isTrulyIdle && modeComboBox.selectedItem == PomodoroMode.CUSTOM) {
                         settingsPanel.isVisible = false
                         revalidate()
                         repaint()
-                    } else if (isTrulyIdle){
+                    } else if (isTrulyIdle) {
                         updateSettingsPanelVisibility()
                     }
                 }
@@ -322,10 +409,10 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
                     sessionIndicator.updateSessions(session, settings.sessionsPerRound, isBreak)
                     if (isBreak) {
                         phaseLabel.text = "Break"
-                        phaseLabel.foreground = Color(243, 156, 18) // Matches breakColor
+                        phaseLabel.foreground = Color(243, 156, 18)
                     } else {
                         phaseLabel.text = "Focus"
-                        phaseLabel.foreground = Color(74, 144, 226) // Matches workColor
+                        phaseLabel.foreground = Color(74, 144, 226)
                     }
                 }
             }
