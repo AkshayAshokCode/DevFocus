@@ -13,7 +13,11 @@ class CircularTimerPanel : JPanel() {
     // Colors following UX best practices
     private val workColor = Color(74, 144, 226) // Blue for focus/work
     private val breakColor = Color(243, 156, 18) // Orange for rest
-    private val backgroundColor = Color(224, 224, 224) // Light gray
+    // Dynamic so it adapts to light/dark themes
+    private val backgroundColor: Color
+        get() = UIManager.getColor("Separator.separatorColor")
+            ?: UIManager.getColor("Component.borderColor")
+            ?: Color(200, 200, 200)
 
     private val diameter = 180
     private val strokeWidth = 12f

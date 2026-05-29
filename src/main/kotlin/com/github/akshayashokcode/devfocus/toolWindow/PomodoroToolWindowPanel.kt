@@ -14,6 +14,7 @@ import com.intellij.ui.components.JBPanel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
@@ -50,6 +51,13 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     private val sessionTextLabel = JLabel("Session 1 of 4").apply {
         horizontalAlignment = SwingConstants.CENTER
         font = font.deriveFont(Font.BOLD, 14f)
+    }
+
+    // Phase label: shows "Focus" or "Break" clearly beneath the timer
+    private val phaseLabel = JLabel("Focus").apply {
+        horizontalAlignment = SwingConstants.CENTER
+        font = font.deriveFont(Font.BOLD, 13f)
+        foreground = Color(74, 144, 226) // Matches workColor in CircularTimerPanel
     }
 
     // Circular timer display
@@ -136,11 +144,17 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
             add(resetButton)
         }
 
+        // Phase label panel
+        val phaseLabelPanel = JPanel(FlowLayout(FlowLayout.CENTER, 0, 2)).apply {
+            add(phaseLabel)
+        }
+
         // Center content
         val centerPanel = JPanel().apply {
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
             add(infoPanel)
             add(timerPanel)
+            add(phaseLabelPanel)
             add(sessionPanel)
             add(progressPanel)
             add(buttonPanel)
@@ -215,19 +229,9 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     }
 
     private fun rebuildLayout() {
-        // Remove all components
         removeAll()
-
-        // Rebuild UI with new layout
         buildUI()
-
-        // Reconnect listeners (buttons are recreated, need new listeners)
-        setupListeners()
-
-        // Update setting panel visibility
         updateSettingsPanelVisibility()
-
-        // Refresh the panel
         revalidate()
         repaint()
     }
@@ -316,6 +320,13 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
                     val session = timerService.currentSession.value
                     val isBreak = phase == PomodoroTimerService.TimerPhase.BREAK
                     sessionIndicator.updateSessions(session, settings.sessionsPerRound, isBreak)
+                    if (isBreak) {
+                        phaseLabel.text = "Break"
+                        phaseLabel.foreground = Color(243, 156, 18) // Matches breakColor
+                    } else {
+                        phaseLabel.text = "Focus"
+                        phaseLabel.foreground = Color(74, 144, 226) // Matches workColor
+                    }
                 }
             }
         }

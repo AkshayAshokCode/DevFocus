@@ -19,14 +19,23 @@ class SessionIndicatorPanel : JPanel() {
 
     init {
         isOpaque = false
-        preferredSize = Dimension(200, 50)
+        updatePreferredSize(totalSessions)
     }
 
     fun updateSessions(current: Int, total: Int, isBreak: Boolean = false) {
         this.currentSession = current
-        this.totalSessions = total
+        if (total != this.totalSessions) {
+            this.totalSessions = total
+            updatePreferredSize(total)
+            revalidate()
+        }
         this.isBreakTime = isBreak
         repaint()
+    }
+
+    private fun updatePreferredSize(total: Int) {
+        val needed = indicatorSize * total + spacing * (total - 1).coerceAtLeast(0) + 20
+        preferredSize = Dimension(needed.coerceAtLeast(200), 50)
     }
 
     override fun paintComponent(g: Graphics) {

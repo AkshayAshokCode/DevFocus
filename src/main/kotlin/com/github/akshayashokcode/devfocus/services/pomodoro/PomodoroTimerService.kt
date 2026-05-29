@@ -96,7 +96,7 @@ class PomodoroTimerService(private val project: Project) {
                 _timeLeft.value = formatTime(remainingTimeMs)
             } else {
                 // Work session complete - start break
-                playBreakSound()
+                playWorkEndSound()
                 _currentSession.value = currentSessionNum + 1
 
                 NotificationGroupManager.getInstance()
@@ -119,7 +119,7 @@ class PomodoroTimerService(private val project: Project) {
         } else {
             // Break complete
             // More sessions remaining - start next session
-            playWorkSound()
+            playBreakEndSound()
             NotificationGroupManager.getInstance()
                 .getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(
@@ -129,10 +129,9 @@ class PomodoroTimerService(private val project: Project) {
                 )
                 .notify(project)
 
-            // Start next work session
+            // Start next work session (session was already incremented when work ended)
             internalPhase = TimerPhase.WORK
             _currentPhase.value = TimerPhase.WORK
-            _currentSession.value = currentSessionNum + 1
             remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
             _timeLeft.value = formatTime(remainingTimeMs)
             start()
@@ -198,11 +197,11 @@ class PomodoroTimerService(private val project: Project) {
         return if (totalMs > 0) remainingTimeMs.toFloat() / totalMs.toFloat() else 0f
     }
 
-    private fun playBreakSound() {
+    private fun playBreakEndSound() {
         SoundPlayer.play("break.wav")
     }
 
-    private fun playWorkSound() {
+    private fun playWorkEndSound() {
         SoundPlayer.play("work.wav")
     }
 
