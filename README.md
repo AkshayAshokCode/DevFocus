@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/jetbrains/plugin/v/30114.svg)](https://plugins.jetbrains.com/plugin/30114)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/30114.svg)](https://plugins.jetbrains.com/plugin/30114)
 
-DevFocus is a Pomodoro timer plugin for Android Studio and IntelliJ IDEA that helps developers stay focused, take structured breaks, and track their productivity — without leaving the IDE.
+DevFocus is a Pomodoro timer plugin for all JetBrains IDEs that helps developers stay focused, take structured breaks, and track their productivity — without leaving the IDE.
 
 <!-- Plugin description -->
 # DevFocus — Pomodoro Timer for JetBrains IDEs
@@ -41,7 +41,7 @@ Most Pomodoro timers don't survive an IDE restart, skip the long break entirely,
 
 ## Supported IDEs
 
-IntelliJ IDEA, Android Studio, PyCharm, WebStorm, CLion, Rider, and all other JetBrains IDEs.
+18 IDEs — IntelliJ IDEA, Android Studio, PyCharm, WebStorm, CLion, Rider, GoLand, PHPStorm, RubyMine, DataSpell, DataGrip, and more.
 
 <!-- Plugin description end -->
 
