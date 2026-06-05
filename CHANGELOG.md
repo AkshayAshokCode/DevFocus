@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+## [2.2.0]
+### Added
+- **End time display** — tool window shows "Ends at X:XX PM" below the phase label and "Free by X:XX PM" below the session counter while the timer is running; both labels hide automatically when paused or idle and recalculate on resume
+- **Saved custom presets** — name and save any custom timing configuration from the Custom mode panel; saved presets appear directly in the mode dropdown alongside the built-in modes and are persisted across IDE restarts
+- **Customizable ring colors** — Focus and Break accent colors are now configurable via Settings; pick any color from a visual color picker (supports HSB wheel, RGB sliders, and hex input); defaults are restored if settings are cleared
+
+### Changed
+- Play and Pause replaced by a single icon toggle button that switches between ▶ and ⏸ based on timer state, with a tooltip of "Start", "Resume", or "Pause" as appropriate
+- Reset button updated to use an icon instead of text
+- Custom mode duration inputs replaced with step spinners (Session: 5–120 min step 5, Break: 1–60 min step 1, Sessions: 1–10 step 1); spinner model enforces bounds natively, removing the need for validation error dialogs
+- Switching to Custom mode in the dropdown now pre-populates the spinners with the currently active session settings
+
 ## [2.1.0]
 ### Changed
 - Cleaned up boilerplate scaffold files (MyProjectActivity, MyProjectService)

@@ -19,6 +19,8 @@ Most Pomodoro timers don't survive an IDE restart, skip the long break entirely,
 
 **🔁 Proper long breaks.** After a full round of sessions, DevFocus fires a long break automatically — the defining feature of the Pomodoro technique that most timer plugins quietly omit.
 
+**🕐 Tells you when you'll be done.** Once running, the tool window shows two live timestamps: when the current session ends and when the full round finishes. No mental math — just "Ends at 3:45 PM" and "Free by 5:30 PM" so you can plan your day around your focus blocks.
+
 **⏭ Skip break from the notification.** When you're in flow, click **Skip Break** directly in the IDE notification balloon. No need to open the tool window or break your focus.
 
 **⌨️ Full keyboard control.** Start/Pause, Reset, and Skip Break are registered as IDE actions — assign your own shortcuts via **Settings → Keymap → DevFocus** to avoid conflicts with your existing bindings. All three are also reachable via **Tools → DevFocus** and Find Action (`Ctrl+Shift+A` / `⌘⇧A`).
@@ -29,8 +31,10 @@ Most Pomodoro timers don't survive an IDE restart, skip the long break entirely,
 
 ## Everything else
 
-- **Three modes** — Classic Pomodoro (25/5), Deep Work (50/10), or fully custom durations
+- **Three built-in modes** — Classic Pomodoro (25/5), Deep Work (50/10), or fully Custom durations
+- **Saved custom presets** — name and save your own timing configurations; switch to them in one click from the mode dropdown
 - **Visual circular timer** — arc depletes clockwise, colour-coded by phase
+- **Customizable ring colors** — pick any Focus and Break accent color from a color picker in Settings
 - **Session indicator** — dot row showing completed, active, and upcoming sessions
 - **🍅 Daily session counter** — resets at midnight, shown in tool window and status bar
 - **Auto-start toggle** — choose whether work sessions start automatically after a break or wait for you

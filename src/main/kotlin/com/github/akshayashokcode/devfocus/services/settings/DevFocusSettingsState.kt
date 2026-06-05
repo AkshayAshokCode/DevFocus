@@ -1,5 +1,6 @@
 package com.github.akshayashokcode.devfocus.services.settings
 
+import com.github.akshayashokcode.devfocus.model.SavedPreset
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -18,15 +19,24 @@ class DevFocusSettingsState : PersistentStateComponent<DevFocusSettingsState.Set
         var savedCurrentSession: Int = 1,
         var savedPhase: String = "WORK",
         var savedTimerWasRunning: Boolean = false,
+        var savedTimerState: String = "IDLE",
         var savedSessionMinutes: Int = 25,
         var savedBreakMinutes: Int = 5,
         var savedSessionsPerRound: Int = 4,
         var savedLongBreakMinutes: Int = 15,
         var savedLongBreakAfter: Int = 4,
         var savedMode: String = "CLASSIC",
+        // Ring accent colors (hex strings, e.g. "#4a90e2")
+        var focusColorHex: String = "#4a90e2",
+        var breakColorHex: String = "#f39c12",
         // Daily session counter
         var completedSessionsToday: Int = 0,
-        var lastSessionDate: String = ""
+        var lastSessionDate: String = "",
+        // Saved custom presets — parallel lists (IntelliJ XML serializer handles List<String> reliably)
+        var presetNames: MutableList<String> = mutableListOf(),
+        var presetSessions: MutableList<String> = mutableListOf(),
+        var presetBreaks: MutableList<String> = mutableListOf(),
+        var presetCounts: MutableList<String> = mutableListOf()
     )
 
     private var state = SettingsState()
@@ -60,6 +70,10 @@ class DevFocusSettingsState : PersistentStateComponent<DevFocusSettingsState.Set
         get() = state.savedTimerWasRunning
         set(value) { state.savedTimerWasRunning = value }
 
+    var savedTimerState: String
+        get() = state.savedTimerState
+        set(value) { state.savedTimerState = value }
+
     var savedSessionMinutes: Int
         get() = state.savedSessionMinutes
         set(value) { state.savedSessionMinutes = value }
@@ -84,6 +98,15 @@ class DevFocusSettingsState : PersistentStateComponent<DevFocusSettingsState.Set
         get() = state.savedMode
         set(value) { state.savedMode = value }
 
+    // Ring colors
+    var focusColorHex: String
+        get() = state.focusColorHex
+        set(value) { state.focusColorHex = value }
+
+    var breakColorHex: String
+        get() = state.breakColorHex
+        set(value) { state.breakColorHex = value }
+
     // Daily counter
     var completedSessionsToday: Int
         get() = state.completedSessionsToday
@@ -92,4 +115,22 @@ class DevFocusSettingsState : PersistentStateComponent<DevFocusSettingsState.Set
     var lastSessionDate: String
         get() = state.lastSessionDate
         set(value) { state.lastSessionDate = value }
+
+    // Saved presets
+    fun getSavedPresets(): List<SavedPreset> =
+        state.presetNames.indices.mapNotNull { i ->
+            SavedPreset(
+                name = state.presetNames[i],
+                sessionMinutes = state.presetSessions.getOrNull(i)?.toIntOrNull() ?: return@mapNotNull null,
+                breakMinutes = state.presetBreaks.getOrNull(i)?.toIntOrNull() ?: return@mapNotNull null,
+                sessionsPerRound = state.presetCounts.getOrNull(i)?.toIntOrNull() ?: return@mapNotNull null
+            )
+        }
+
+    fun addSavedPreset(preset: SavedPreset) {
+        state.presetNames.add(preset.name)
+        state.presetSessions.add(preset.sessionMinutes.toString())
+        state.presetBreaks.add(preset.breakMinutes.toString())
+        state.presetCounts.add(preset.sessionsPerRound.toString())
+    }
 }
