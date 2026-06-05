@@ -7,14 +7,26 @@
     >akshayashokcode</vendor>
     <description>
         <![CDATA[
-        DevFocus is a Pomodoro timer for Android Studio & IntelliJ
-        that helps developers maintain deep focus using structured
-        work sessions, breaks, and productivity tracking.
+        DevFocus is a Pomodoro timer for JetBrains IDEs that keeps developers in flow through
+        structured focus sessions and breaks — without leaving the editor.<br/><br/>
+        Timer state survives restarts and crashes. Built-in Classic and Deep Work modes, plus
+        unlimited named custom presets switchable from the mode dropdown. Live end-time display
+        shows exactly when your session ends and when your full round finishes — so you can plan
+        your day around your focus blocks. Customizable ring colors, a persistent status bar
+        countdown, actionable notifications, and full keyboard action support.
         ]]>
     </description>
 
     <change-notes>
-        Improved session timer and enhanced UX.
+        <![CDATA[
+        <ul>
+            <li><b>End time display</b> — live "Ends at X:XX PM" and "Free by X:XX PM" labels appear while the timer runs, hidden when paused</li>
+            <li><b>Saved custom presets</b> — name and save your own timing configurations; they appear directly in the mode dropdown</li>
+            <li><b>Customizable ring colors</b> — pick Focus and Break accent colors from a color picker in Settings</li>
+            <li><b>Icon play/pause toggle</b> — single button replaces separate Start/Pause text buttons</li>
+            <li><b>Spinner inputs in Custom mode</b> — step controls with min/max bounds replace free-text fields</li>
+        </ul>
+        ]]>
     </change-notes>
 
     <idea-version since-build="233"/>

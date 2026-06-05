@@ -1,27 +1,27 @@
 package com.github.akshayashokcode.devfocus.ui.settings
 
-import com.github.akshayashokcode.devfocus.util.SettingsValidationResult
-import com.github.akshayashokcode.devfocus.util.validateSettings
-import java.awt.Color
 import java.awt.Dimension
 import java.awt.GridLayout
 import javax.swing.*
-import javax.swing.border.LineBorder
 
 class PomodoroSettingsPanel(
-    private val applySettingsCallback: (Int, Int, Int) -> Unit
-) : JPanel(GridLayout(4, 2, 8, 5)) {
+    private val applySettingsCallback: (Int, Int, Int) -> Unit,
+    private val savePresetCallback: (name: String, session: Int, breakTime: Int, sessions: Int) -> Unit
+) : JPanel(GridLayout(5, 2, 8, 5)) {
 
-    private val sessionField = JTextField("25").apply {
-        preferredSize = Dimension(60, 28)
+    private val sessionSpinner = JSpinner(SpinnerNumberModel(25, 5, 120, 5)).apply {
+        preferredSize = Dimension(80, 28)
     }
-    private val breakField = JTextField("5").apply {
-        preferredSize = Dimension(60, 28)
+    private val breakSpinner = JSpinner(SpinnerNumberModel(5, 1, 60, 1)).apply {
+        preferredSize = Dimension(80, 28)
     }
-    private val sessionsField = JTextField("4").apply {
-        preferredSize = Dimension(60, 28)
+    private val sessionsSpinner = JSpinner(SpinnerNumberModel(4, 1, 10, 1)).apply {
+        preferredSize = Dimension(80, 28)
     }
     private val applyButton = JButton("Apply").apply {
+        preferredSize = Dimension(100, 32)
+    }
+    private val savePresetButton = JButton("Save as Preset").apply {
         preferredSize = Dimension(100, 32)
     }
 
@@ -29,69 +29,45 @@ class PomodoroSettingsPanel(
         border = BorderFactory.createEmptyBorder(10, 15, 10, 15)
 
         add(JLabel("Session Duration (min):"))
-        add(sessionField)
+        add(sessionSpinner)
         add(JLabel("Break Duration (min):"))
-        add(breakField)
+        add(breakSpinner)
         add(JLabel("Sessions per Round:"))
-        add(sessionsField)
-        add(JLabel()) // spacer
+        add(sessionsSpinner)
+        add(JLabel())
         add(applyButton)
-
-        clearOnType(sessionField)
-        clearOnType(breakField)
-        clearOnType(sessionsField)
+        add(JLabel())
+        add(savePresetButton)
 
         applyButton.addActionListener {
-            // Reset all fields to default border
-            val defaultBorder = UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border")
-            sessionField.border = defaultBorder
-            breakField.border = defaultBorder
-            sessionsField.border = defaultBorder
+            applySettingsCallback(
+                sessionSpinner.value as Int,
+                breakSpinner.value as Int,
+                sessionsSpinner.value as Int
+            )
+        }
 
-            val session = sessionField.text.toIntOrNull()
-            val breakTime = breakField.text.toIntOrNull()
-            val sessions = sessionsField.text.toIntOrNull()
-
-            when (val result = validateSettings(session, breakTime, sessions)) {
-                is SettingsValidationResult.Valid -> {
-                    applySettingsCallback(
-                        result.settings.sessionMinutes,
-                        result.settings.breakMinutes,
-                        result.settings.sessionsPerRound
-                    )
-                    JOptionPane.showMessageDialog(this, "Settings applied successfully.")
-                }
-
-                is SettingsValidationResult.Invalid -> {
-                    val errorBorder = LineBorder(Color.RED, 2)
-
-                    // Highlight the appropriate field
-                    when (result.field) {
-                        "session" -> sessionField.border = errorBorder
-                        "break" -> breakField.border = errorBorder
-                        "sessions" -> sessionsField.border = errorBorder
-                    }
-
-                    // Show popup error as well
-                    JOptionPane.showMessageDialog(
-                        this,
-                        result.errorMessage,
-                        "Validation Error",
-                        JOptionPane.ERROR_MESSAGE
-                    )
-                }
+        savePresetButton.addActionListener {
+            val name = JOptionPane.showInputDialog(
+                this,
+                "Enter a name for this preset:",
+                "Save Preset",
+                JOptionPane.PLAIN_MESSAGE
+            )
+            if (!name.isNullOrBlank()) {
+                savePresetCallback(
+                    name.trim(),
+                    sessionSpinner.value as Int,
+                    breakSpinner.value as Int,
+                    sessionsSpinner.value as Int
+                )
             }
         }
     }
-    private fun clearOnType(field: JTextField) {
-        val defaultBorder = UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border")
-        field.document.addDocumentListener(object : javax.swing.event.DocumentListener {
-            override fun insertUpdate(e: javax.swing.event.DocumentEvent?) = clear()
-            override fun removeUpdate(e: javax.swing.event.DocumentEvent?) = clear()
-            override fun changedUpdate(e: javax.swing.event.DocumentEvent?) = clear()
-            private fun clear() {
-                field.border = defaultBorder
-            }
-        })
+
+    fun loadValues(sessionMin: Int, breakMin: Int, sessionsPerRound: Int) {
+        sessionSpinner.value = sessionMin.coerceIn(5, 120)
+        breakSpinner.value = breakMin.coerceIn(1, 60)
+        sessionsSpinner.value = sessionsPerRound.coerceIn(1, 10)
     }
 }

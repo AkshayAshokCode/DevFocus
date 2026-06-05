@@ -10,8 +10,8 @@ class CircularTimerPanel : JPanel() {
     private var progress: Float = 1.0f // 0.0 to 1.0 (1.0 = full, 0.0 = empty)
     private var isBreakTime: Boolean = false
 
-    private val workColor = Color(74, 144, 226)
-    private val breakColor = Color(243, 156, 18)
+    var focusColor: Color = Color(74, 144, 226)
+    var breakColor: Color = Color(243, 156, 18)
     private val backgroundColor: Color
         get() = UIManager.getColor("Separator.separatorColor")
             ?: UIManager.getColor("Component.borderColor")
@@ -58,7 +58,7 @@ class CircularTimerPanel : JPanel() {
 
         // Progress arc (clockwise from top, depleting)
         val arcAngle = (360 * progress).toInt()
-        g2d.color = if (isBreakTime) breakColor else workColor
+        g2d.color = if (isBreakTime) breakColor else focusColor
         g2d.stroke = BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
         g2d.drawArc(arcX, arcY, diameter, diameter, 90, -arcAngle)
 

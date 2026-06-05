@@ -31,7 +31,6 @@ class PomodoroTimerService(private val project: Project) {
     companion object {
         private const val ONE_SECOND = 1000L
         private const val NOTIFICATION_GROUP_ID = "DevFocus Notifications"
-        private const val SAVE_INTERVAL_TICKS = 30
     }
 
     enum class TimerState { IDLE, RUNNING, PAUSED }
@@ -88,12 +87,13 @@ class PomodoroTimerService(private val project: Project) {
         persistState()
 
         job = coroutineScope.launch {
-            var ticks = 0
             while (remainingTimeMs > 0 && isActive) {
                 delay(ONE_SECOND)
                 remainingTimeMs -= ONE_SECOND
                 _timeLeft.value = formatTime(remainingTimeMs)
-                if (++ticks % SAVE_INTERVAL_TICKS == 0) persistState()
+                // Guard: never save at remainingMs=0 — phase hasn't transitioned yet,
+                // so a crash here would restore a stale WORK state and replay the session.
+                if (remainingTimeMs > 0) persistState()
             }
             if (remainingTimeMs <= 0) {
                 // Do NOT set IDLE here — onSessionComplete updates phase/session first,
@@ -148,45 +148,44 @@ class PomodoroTimerService(private val project: Project) {
 
             if (sessionNum >= totalSessions) {
                 // Full round done — start long break
-                playWorkEndSound()
                 val longMin = settings.longBreakMinutes
-                notifyWithAction(
-                    title = "🎉 Round Complete!",
-                    body = "Outstanding! $totalSessions sessions done. Enjoy a $longMin-min long break.",
-                    actionText = "Skip Long Break",
-                    action = { skipBreak() }
-                )
                 _currentSession.value = 1
                 internalPhase = TimerPhase.LONG_BREAK
                 _currentPhase.value = TimerPhase.LONG_BREAK
                 remainingTimeMs = TimeUnit.MINUTES.toMillis(longMin.toLong())
                 _timeLeft.value = formatTime(remainingTimeMs)
                 _state.value = TimerState.IDLE
-                persistState()
+                persistState() // save new phase before any side effects
+                playWorkEndSound()
+                notifyWithAction(
+                    title = "🎉 Round Complete!",
+                    body = "Outstanding! $totalSessions sessions done. Enjoy a $longMin-min long break.",
+                    actionText = "Skip Long Break",
+                    action = { skipBreak() }
+                )
                 start() // long break always auto-starts
 
             } else {
                 // Short break between sessions
-                playWorkEndSound()
                 _currentSession.value = sessionNum + 1
+                internalPhase = TimerPhase.BREAK
+                _currentPhase.value = TimerPhase.BREAK
+                remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.breakMinutes.toLong())
+                _timeLeft.value = formatTime(remainingTimeMs)
+                _state.value = TimerState.IDLE
+                persistState() // save new phase before any side effects
+                playWorkEndSound()
                 notifyWithAction(
                     title = "✅ Session $sessionNum Complete!",
                     body = "Great work! Starting ${settings.breakMinutes}-min break ☕.",
                     actionText = "Skip Break",
                     action = { skipBreak() }
                 )
-                internalPhase = TimerPhase.BREAK
-                _currentPhase.value = TimerPhase.BREAK
-                remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.breakMinutes.toLong())
-                _timeLeft.value = formatTime(remainingTimeMs)
-                _state.value = TimerState.IDLE
-                persistState()
                 start() // short breaks always auto-start
             }
 
         } else {
             // BREAK or LONG_BREAK complete
-            playBreakEndSound()
             val nextSession = _currentSession.value
             val autoStart = appSettings.autoStartNextSession
             internalPhase = TimerPhase.WORK
@@ -194,7 +193,8 @@ class PomodoroTimerService(private val project: Project) {
             remainingTimeMs = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
             _timeLeft.value = formatTime(remainingTimeMs)
             _state.value = TimerState.IDLE
-            persistState()
+            persistState() // save new phase before any side effects
+            playBreakEndSound()
 
             if (autoStart) {
                 notify(
@@ -235,6 +235,21 @@ class PomodoroTimerService(private val project: Project) {
 
     fun getSettings(): PomodoroSettings = settings
 
+    fun getRemainingSessionMs(): Long = remainingTimeMs
+
+    fun getRemainingRoundMs(): Long {
+        val sessionMs = TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
+        val breakMs = TimeUnit.MINUTES.toMillis(settings.breakMinutes.toLong())
+        val longBreakMs = TimeUnit.MINUTES.toMillis(settings.longBreakMinutes.toLong())
+        val T = settings.sessionsPerRound
+        val N = _currentSession.value
+        return when (internalPhase) {
+            TimerPhase.LONG_BREAK -> remainingTimeMs
+            TimerPhase.WORK  -> remainingTimeMs + (T - N) * (sessionMs + breakMs) + longBreakMs
+            TimerPhase.BREAK -> remainingTimeMs + (T - N) * (sessionMs + breakMs) + sessionMs + longBreakMs
+        }
+    }
+
     fun getProgress(): Float {
         val totalMs = when (internalPhase) {
             TimerPhase.WORK       -> TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
@@ -253,6 +268,7 @@ class PomodoroTimerService(private val project: Project) {
             savedRemainingTimeMs = remainingTimeMs
             savedCurrentSession = _currentSession.value
             savedPhase = internalPhase.name
+            savedTimerState = _state.value.name
             savedTimerWasRunning = _state.value == TimerState.RUNNING
             savedSessionMinutes = settings.sessionMinutes
             savedBreakMinutes = settings.breakMinutes
@@ -292,7 +308,11 @@ class PomodoroTimerService(private val project: Project) {
                           else TimeUnit.MINUTES.toMillis(settings.sessionMinutes.toLong())
         _timeLeft.value = formatTime(remainingTimeMs)
 
-        if (saved.savedTimerWasRunning && savedMs > 0) {
+        // Restore as PAUSED for both RUNNING and PAUSED — fall back to old boolean for existing saves
+        val priorState = runCatching { TimerState.valueOf(saved.savedTimerState) }.getOrElse {
+            if (saved.savedTimerWasRunning) TimerState.RUNNING else TimerState.IDLE
+        }
+        if ((priorState == TimerState.RUNNING || priorState == TimerState.PAUSED) && savedMs > 0) {
             _state.value = TimerState.PAUSED
         }
     }
