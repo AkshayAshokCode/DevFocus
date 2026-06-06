@@ -11,6 +11,10 @@ DevFocus is a Pomodoro timer plugin for all JetBrains IDEs that helps developers
 
 Most Pomodoro timers don't survive an IDE restart, skip the long break entirely, and require you to leave the editor just to pause. DevFocus fixes all three — and stays out of your way while doing it.
 
+<img width="1720" height="1083" alt="Screenshot 2026-06-07 at 1 15 23 AM" src="https://github.com/user-attachments/assets/9278a357-e5bc-4f05-85a8-54e8c9d45145" />
+
+<img width="1721" height="1080" alt="Screenshot 2026-06-07 at 12 46 07 AM" src="https://github.com/user-attachments/assets/e79d08b1-e09c-40c2-9760-271fc05364ca" />
+
 ---
 
 ## What makes it different
@@ -40,6 +44,8 @@ Most Pomodoro timers don't survive an IDE restart, skip the long break entirely,
 - **Auto-start toggle** — choose whether work sessions start automatically after a break or wait for you
 - **Actionable notifications** — Skip Break, Skip Long Break, Start Session — inline in the balloon
 - **Responsive tool window** — adapts between compact, vertical, and horizontal layouts as you resize
+- 
+<img width="400" alt="Screenshot 2026-06-07 at 12 40 44 AM" src="https://github.com/user-attachments/assets/a73952e8-5a2a-4a50-8c98-66dfd925a3fb" />
 
 ---
 
