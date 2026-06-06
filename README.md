@@ -32,7 +32,7 @@ Most Pomodoro timers don't survive an IDE restart, skip the long break entirely,
 ## Everything else
 
 - **Three built-in modes** — Classic Pomodoro (25/5), Deep Work (50/10), or fully Custom durations
-- **Saved custom presets** — name and save your own timing configurations; switch to them in one click from the mode dropdown
+- **Saved custom modes** — name and save your own timing configurations; switch to them in one click from the mode dropdown
 - **Visual circular timer** — arc depletes clockwise, colour-coded by phase
 - **Customizable ring colors** — pick any Focus and Break accent color from a color picker in Settings
 - **Session indicator** — dot row showing completed, active, and upcoming sessions

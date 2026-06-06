@@ -4,10 +4,17 @@
 
 ## [Unreleased]
 
+## [2.2.1]
+### Added
+- **Delete saved modes** — remove any saved custom mode directly from the Settings dialog; deletions are staged and applied on OK
+
+### Changed
+- Renamed "presets" to "modes" throughout — saved custom configurations now consistently referred to as modes alongside the built-in Classic, Deep Work, and Custom modes
+
 ## [2.2.0]
 ### Added
 - **End time display** — tool window shows "Ends at X:XX PM" below the phase label and "Free by X:XX PM" below the session counter while the timer is running; both labels hide automatically when paused or idle and recalculate on resume
-- **Saved custom presets** — name and save any custom timing configuration from the Custom mode panel; saved presets appear directly in the mode dropdown alongside the built-in modes and are persisted across IDE restarts
+- **Saved custom modes** — name and save any custom timing configuration from the Custom mode panel; saved modes appear directly in the mode dropdown alongside the built-in modes and are persisted across IDE restarts
 - **Customizable ring colors** — Focus and Break accent colors are now configurable via Settings; pick any color from a visual color picker (supports HSB wheel, RGB sliders, and hex input); defaults are restored if settings are cleared
 
 ### Changed

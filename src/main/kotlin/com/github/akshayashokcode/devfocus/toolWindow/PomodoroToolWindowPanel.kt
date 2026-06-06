@@ -2,7 +2,7 @@ package com.github.akshayashokcode.devfocus.toolWindow
 
 import com.github.akshayashokcode.devfocus.model.PomodoroMode
 import com.github.akshayashokcode.devfocus.model.PomodoroSettings
-import com.github.akshayashokcode.devfocus.model.SavedPreset
+import com.github.akshayashokcode.devfocus.model.SavedMode
 import com.github.akshayashokcode.devfocus.services.pomodoro.PomodoroTimerService
 import com.github.akshayashokcode.devfocus.services.settings.DevFocusSettingsState
 import com.github.akshayashokcode.devfocus.ui.components.CircularTimerPanel
@@ -26,6 +26,8 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -42,14 +44,14 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     private enum class LayoutMode { COMPACT, VERTICAL, HORIZONTAL }
     private var currentLayout = LayoutMode.VERTICAL
 
-    // Mode selector — holds PomodoroMode entries plus any SavedPreset items
+    // Mode selector — holds PomodoroMode entries plus any SavedMode items
     private val modeComboBox = JComboBox<Any>().apply {
         PomodoroMode.entries.forEach { addItem(it) }
         selectedItem = PomodoroMode.CLASSIC
         setRenderer { _, value, _, _, _ ->
             JLabel(when (value) {
                 is PomodoroMode -> value.toString()
-                is SavedPreset  -> "📌 ${value.name}"
+                is SavedMode  -> "📌 ${value.name}"
                 else            -> value?.toString() ?: ""
             })
         }
@@ -133,11 +135,11 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
             updateInfoLabel(session, breakTime)
             updateProgressBar(sessions)
         },
-        savePresetCallback = { name, session, breakTime, sessions ->
-            val preset = SavedPreset(name, session, breakTime, sessions)
-            appSettings.addSavedPreset(preset)
-            modeComboBox.addItem(preset)
-            modeComboBox.selectedItem = preset
+        saveModeCallback = { name, session, breakTime, sessions ->
+            val mode = SavedMode(name, session, breakTime, sessions)
+            appSettings.addSavedMode(mode)
+            modeComboBox.addItem(mode)
+            modeComboBox.selectedItem = mode
         }
     )
 
@@ -149,7 +151,7 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
     private var dailyJob: Job? = null
 
     init {
-        appSettings.getSavedPresets().forEach { modeComboBox.addItem(it) }
+        appSettings.getSavedModes().forEach { modeComboBox.addItem(it) }
         buildUI()
         applyStoredColors()
         setupListeners()
@@ -371,7 +373,7 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
                         updateProgressBar(selected.sessionsPerRound)
                     }
                 }
-                is SavedPreset -> {
+                is SavedMode -> {
                     timerService.applySettings(
                         PomodoroSettings(PomodoroMode.CUSTOM, selected.sessionMinutes, selected.breakMinutes, selected.sessionsPerRound)
                     )
@@ -385,7 +387,49 @@ class PomodoroToolWindowPanel(private val project: Project) : JBPanel<JBPanel<*>
         settingsButton.addActionListener {
             PomodoroSettingsDialog(project).show()
             applyStoredColors()
+            refreshModeComboBox()
         }
+
+        modeComboBox.addMouseListener(object : MouseAdapter() {
+            override fun mousePressed(e: MouseEvent) { if (e.isPopupTrigger) showModeContextMenu(e) }
+            override fun mouseReleased(e: MouseEvent) { if (e.isPopupTrigger) showModeContextMenu(e) }
+        })
+    }
+
+    private fun refreshModeComboBox() {
+        val previousSelection = modeComboBox.selectedItem
+        val toRemove = (0 until modeComboBox.itemCount).map { modeComboBox.getItemAt(it) }.filterIsInstance<SavedMode>()
+        toRemove.forEach { modeComboBox.removeItem(it) }
+        val current = appSettings.getSavedModes()
+        current.forEach { modeComboBox.addItem(it) }
+        if (previousSelection is SavedMode && current.any { it.name == previousSelection.name }) {
+            modeComboBox.selectedItem = current.first { it.name == previousSelection.name }
+        } else if (previousSelection is SavedMode) {
+            modeComboBox.selectedItem = PomodoroMode.CLASSIC
+        }
+    }
+
+    private fun showModeContextMenu(e: MouseEvent) {
+        val selected = modeComboBox.selectedItem as? SavedMode ?: return
+        val menu = JPopupMenu()
+        val deleteItem = JMenuItem("Delete \"${selected.name}\"")
+        deleteItem.addActionListener {
+            val confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Delete mode \"${selected.name}\"?",
+                "Delete Mode",
+                JOptionPane.YES_NO_OPTION
+            )
+            if (confirm == JOptionPane.YES_OPTION) {
+                appSettings.deleteSavedMode(selected)
+                modeComboBox.removeItem(selected)
+                if (modeComboBox.selectedItem !is SavedMode && modeComboBox.selectedItem !is PomodoroMode) {
+                    modeComboBox.selectedItem = PomodoroMode.CLASSIC
+                }
+            }
+        }
+        menu.add(deleteItem)
+        menu.show(e.component, e.x, e.y)
     }
 
     private fun updateSettingsPanelVisibility() {

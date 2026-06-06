@@ -6,7 +6,7 @@ import javax.swing.*
 
 class PomodoroSettingsPanel(
     private val applySettingsCallback: (Int, Int, Int) -> Unit,
-    private val savePresetCallback: (name: String, session: Int, breakTime: Int, sessions: Int) -> Unit
+    private val saveModeCallback: (name: String, session: Int, breakTime: Int, sessions: Int) -> Unit
 ) : JPanel(GridLayout(5, 2, 8, 5)) {
 
     private val sessionSpinner = JSpinner(SpinnerNumberModel(25, 5, 120, 5)).apply {
@@ -21,7 +21,7 @@ class PomodoroSettingsPanel(
     private val applyButton = JButton("Apply").apply {
         preferredSize = Dimension(100, 32)
     }
-    private val savePresetButton = JButton("Save as Preset").apply {
+    private val saveModeButton = JButton("Save as Mode").apply {
         preferredSize = Dimension(100, 32)
     }
 
@@ -37,7 +37,7 @@ class PomodoroSettingsPanel(
         add(JLabel())
         add(applyButton)
         add(JLabel())
-        add(savePresetButton)
+        add(saveModeButton)
 
         applyButton.addActionListener {
             applySettingsCallback(
@@ -47,15 +47,15 @@ class PomodoroSettingsPanel(
             )
         }
 
-        savePresetButton.addActionListener {
+        saveModeButton.addActionListener {
             val name = JOptionPane.showInputDialog(
                 this,
-                "Enter a name for this preset:",
-                "Save Preset",
+                "Enter a name for this mode:",
+                "Save Mode",
                 JOptionPane.PLAIN_MESSAGE
             )
             if (!name.isNullOrBlank()) {
-                savePresetCallback(
+                saveModeCallback(
                     name.trim(),
                     sessionSpinner.value as Int,
                     breakSpinner.value as Int,

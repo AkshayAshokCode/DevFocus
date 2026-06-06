@@ -1,6 +1,6 @@
 package com.github.akshayashokcode.devfocus.services.settings
 
-import com.github.akshayashokcode.devfocus.model.SavedPreset
+import com.github.akshayashokcode.devfocus.model.SavedMode
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -32,11 +32,11 @@ class DevFocusSettingsState : PersistentStateComponent<DevFocusSettingsState.Set
         // Daily session counter
         var completedSessionsToday: Int = 0,
         var lastSessionDate: String = "",
-        // Saved custom presets — parallel lists (IntelliJ XML serializer handles List<String> reliably)
-        var presetNames: MutableList<String> = mutableListOf(),
-        var presetSessions: MutableList<String> = mutableListOf(),
-        var presetBreaks: MutableList<String> = mutableListOf(),
-        var presetCounts: MutableList<String> = mutableListOf()
+        // Saved custom modes — parallel lists (IntelliJ XML serializer handles List<String> reliably)
+        var savedModeNames: MutableList<String> = mutableListOf(),
+        var savedModeSessions: MutableList<String> = mutableListOf(),
+        var savedModeBreaks: MutableList<String> = mutableListOf(),
+        var savedModeCounts: MutableList<String> = mutableListOf()
     )
 
     private var state = SettingsState()
@@ -116,21 +116,31 @@ class DevFocusSettingsState : PersistentStateComponent<DevFocusSettingsState.Set
         get() = state.lastSessionDate
         set(value) { state.lastSessionDate = value }
 
-    // Saved presets
-    fun getSavedPresets(): List<SavedPreset> =
-        state.presetNames.indices.mapNotNull { i ->
-            SavedPreset(
-                name = state.presetNames[i],
-                sessionMinutes = state.presetSessions.getOrNull(i)?.toIntOrNull() ?: return@mapNotNull null,
-                breakMinutes = state.presetBreaks.getOrNull(i)?.toIntOrNull() ?: return@mapNotNull null,
-                sessionsPerRound = state.presetCounts.getOrNull(i)?.toIntOrNull() ?: return@mapNotNull null
+    // Saved modes
+    fun getSavedModes(): List<SavedMode> =
+        state.savedModeNames.indices.mapNotNull { i ->
+            SavedMode(
+                name = state.savedModeNames[i],
+                sessionMinutes = state.savedModeSessions.getOrNull(i)?.toIntOrNull() ?: return@mapNotNull null,
+                breakMinutes = state.savedModeBreaks.getOrNull(i)?.toIntOrNull() ?: return@mapNotNull null,
+                sessionsPerRound = state.savedModeCounts.getOrNull(i)?.toIntOrNull() ?: return@mapNotNull null
             )
         }
 
-    fun addSavedPreset(preset: SavedPreset) {
-        state.presetNames.add(preset.name)
-        state.presetSessions.add(preset.sessionMinutes.toString())
-        state.presetBreaks.add(preset.breakMinutes.toString())
-        state.presetCounts.add(preset.sessionsPerRound.toString())
+    fun addSavedMode(mode: SavedMode) {
+        state.savedModeNames.add(mode.name)
+        state.savedModeSessions.add(mode.sessionMinutes.toString())
+        state.savedModeBreaks.add(mode.breakMinutes.toString())
+        state.savedModeCounts.add(mode.sessionsPerRound.toString())
+    }
+
+    fun deleteSavedMode(mode: SavedMode) {
+        val index = state.savedModeNames.indexOf(mode.name)
+        if (index >= 0) {
+            state.savedModeNames.removeAt(index)
+            state.savedModeSessions.removeAt(index)
+            state.savedModeBreaks.removeAt(index)
+            state.savedModeCounts.removeAt(index)
+        }
     }
 }
